@@ -3,8 +3,11 @@ import UIKit
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
-        return true
+        return AuthInitializers.didFinishLaunchingWithOptions(application: application, launchOptions: launchOptions)
+    }
+    
+    func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+        return AuthInitializers.open(application: application, url: url)
     }
 
     // MARK: UISceneSession Lifecycle
