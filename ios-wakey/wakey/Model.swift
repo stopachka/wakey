@@ -24,7 +24,6 @@ class SessionStore : ObservableObject {
     func listen() {
         handle = Auth.auth().addStateDidChangeListener { (auth, user) in
             if let user = user {
-                print(user)
                 self.loggedInUser = User(
                     uid: user.uid
                 )
