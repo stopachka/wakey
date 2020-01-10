@@ -5,8 +5,9 @@ import Combine
 // --------------
 // Models
 
-struct User {
+struct User : Equatable {
     var uid: String
+    var photoURL: URL?
 }
 
 // --------------
@@ -25,7 +26,8 @@ class SessionStore : ObservableObject {
         handle = Auth.auth().addStateDidChangeListener { (auth, user) in
             if let user = user {
                 self.loggedInUser = User(
-                    uid: user.uid
+                    uid: user.uid,
+                    photoURL: user.photoURL
                 )
             } else {
                 self.loggedInUser = nil

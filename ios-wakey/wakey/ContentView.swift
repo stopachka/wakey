@@ -9,7 +9,10 @@ struct ContentView : View {
     
     var body: some View {
         return Group {
-            Text("Hello!")
+            if (sessionStore.loggedInUser != nil) {
+                Text(sessionStore.loggedInUser!.uid)
+                Text(sessionStore.loggedInUser!.photoURL!.absoluteString)
+            }
             FBLoginContainer().frame(width: 150, height: 50)
         }.onAppear(perform: getUser)
     }
