@@ -3,18 +3,13 @@ import SwiftUI
 struct ContentView : View {
     @EnvironmentObject var sessionStore: SessionStore
     
-    func getUser () {
-        sessionStore.listen()
-    }
-    
     var body: some View {
-        return Group {
-            if (sessionStore.loggedInUser != nil) {
-                Text(sessionStore.loggedInUser!.uid)
-                Text(sessionStore.loggedInUser!.photoURL!.absoluteString)
-            }
-            FBLoginContainer().frame(width: 150, height: 50)
-        }.onAppear(perform: getUser)
+        guard let loggedInUser = sessionStore.loggedInUser else {
+            return AnyView(FBLoginContainer().frame(width: 150, height: 50))
+        }
+        return AnyView(
+            Text(loggedInUser.uid)
+        )
     }
 }
 

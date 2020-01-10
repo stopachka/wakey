@@ -35,11 +35,10 @@ struct LoggedInUser : Equatable {
  The work for  FB signin is handled in `FBLoginContainer`
  */
 class SessionStore : ObservableObject {
-    var didChange = PassthroughSubject<SessionStore, Never>()
-    @Published var loggedInUser: LoggedInUser? { didSet { self.didChange.send(self) }}
+    @Published var loggedInUser: LoggedInUser?
     var handle: AuthStateDidChangeListenerHandle?
 
-    func listen() {
+    init() {
         handle = Auth.auth().addStateDidChangeListener { (auth, user) in
             guard let loggedInUser = user else {
                 self.loggedInUser = nil
@@ -49,6 +48,12 @@ class SessionStore : ObservableObject {
                 uid: loggedInUser.uid,
                 photoURL: loggedInUser.photoURL
             )
+        }
+    }
+    
+    deinit {
+        if let handle = handle {
+            Auth.auth().removeStateDidChangeListener(handle)
         }
     }
     
