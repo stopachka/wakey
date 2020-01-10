@@ -27,16 +27,15 @@ struct FBLoginContainer: UIViewRepresentable {
                 print(error.localizedDescription)
                 return
             }
-            if let currentAccessToken = AccessToken.current {
-                let credential = FacebookAuthProvider.credential(withAccessToken: currentAccessToken.tokenString)
-                Auth.auth().signIn(with: credential)
-            } else {
+            guard let currentAccessToken = AccessToken.current else {
                 print("uh oh, no access token")
+                return
             }
+            SessionStore.signInWithFacebook(accessToken: currentAccessToken)
         }
 
         func loginButtonDidLogOut(_ loginButton: FBLoginButton) {
-            try! Auth.auth().signOut()
+            SessionStore.signOut()
         }
     }
 }

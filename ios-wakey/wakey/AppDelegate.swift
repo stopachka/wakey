@@ -1,25 +1,14 @@
 import UIKit
-import Firebase
-import FBSDKCoreKit
-import FBSDKLoginKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
-    /**
-     `didFinishLaunchingWithOptions` is used to set up Firebase and delegate to FB
-     `open` is also delegated to FB
-     */
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        FirebaseApp.configure()
-        ApplicationDelegate.shared.application(application, didFinishLaunchingWithOptions: launchOptions)
-
-        return true;
+        return AuthInitializers.didFinishLaunchingWithOptions(application: application, launchOptions: launchOptions)
     }
     
-    func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-      return ApplicationDelegate.shared.application(app, open: url, options: options)
+    func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
+        return AuthInitializers.open(application: application, url: url)
     }
-    
 
     // MARK: UISceneSession Lifecycle
 
