@@ -33,7 +33,6 @@
 		B29EEA2623C84B48003247FD /* Model.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
 		B29EEA2823C84BB8003247FD /* FBLoginContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FBLoginContainer.swift; sourceTree = "<group>"; };
 		B29EEA2A23C84E4A003247FD /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
-		B2B5B6D523C8465400390EF8 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		D61AF390709FCA59EF3F2F7E /* Pods_wakey.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_wakey.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -85,7 +84,6 @@
 				B20101C123C8428E0083B675 /* AppDelegate.swift */,
 				B20101C323C8428E0083B675 /* SceneDelegate.swift */,
 				B20101C523C8428E0083B675 /* ContentView.swift */,
-				B2B5B6D523C8465400390EF8 /* SessionStore.swift */,
 				B29EEA2623C84B48003247FD /* Model.swift */,
 				B29EEA2823C84BB8003247FD /* FBLoginContainer.swift */,
 				B20101C723C842900083B675 /* Assets.xcassets */,

@@ -23,11 +23,10 @@ struct FBLoginContainer: UIViewRepresentable {
 
     class Coordinator : NSObject, LoginButtonDelegate {
         func loginButton(_ loginButton: FBLoginButton, didCompleteWith result: LoginManagerLoginResult?, error: Error?) {
-            if error != nil {
-                print(error?.localizedDescription ?? "unknown login error")
+            if let error = error {
+                print(error.localizedDescription)
                 return
             }
-            
             if let currentAccessToken = AccessToken.current {
                 let credential = FacebookAuthProvider.credential(withAccessToken: currentAccessToken.tokenString)
                 Auth.auth().signIn(with: credential)
