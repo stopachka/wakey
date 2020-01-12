@@ -36,18 +36,21 @@ struct LoggedInUser : Equatable {
  */
 class SessionStore : ObservableObject {
     @Published var loggedInUser: LoggedInUser?
+    @Published var isLoading: Bool = true
     var handle: AuthStateDidChangeListenerHandle?
 
     init() {
         handle = Auth.auth().addStateDidChangeListener { (auth, user) in
             guard let loggedInUser = user else {
                 self.loggedInUser = nil
+                self.isLoading = false
                 return
             }
             self.loggedInUser = LoggedInUser(
                 uid: loggedInUser.uid,
                 photoURL: loggedInUser.photoURL
             )
+            self.isLoading = false
         }
     }
     
