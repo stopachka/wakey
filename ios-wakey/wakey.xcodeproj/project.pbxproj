@@ -16,6 +16,7 @@
 		B29EEA2723C84B48003247FD /* Auth.swift in Sources */ = {isa = PBXBuildFile; fileRef = B29EEA2623C84B48003247FD /* Auth.swift */; };
 		B29EEA2B23C84E4A003247FD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B29EEA2A23C84E4A003247FD /* GoogleService-Info.plist */; };
 		CB5363FCC2F63E3CC93B8391 /* Pods_wakey.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D61AF390709FCA59EF3F2F7E /* Pods_wakey.framework */; };
+		DC6EE56623CEEB2A000480EB /* FBLoginContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC6EE56523CEEB2A000480EB /* FBLoginContainerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 		B29EEA2623C84B48003247FD /* Auth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Auth.swift; sourceTree = "<group>"; };
 		B29EEA2A23C84E4A003247FD /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		D61AF390709FCA59EF3F2F7E /* Pods_wakey.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_wakey.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		DC6EE56523CEEB2A000480EB /* FBLoginContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FBLoginContainerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +84,7 @@
 				B20101C123C8428E0083B675 /* AppDelegate.swift */,
 				B20101C323C8428E0083B675 /* SceneDelegate.swift */,
 				B20101C523C8428E0083B675 /* ContentView.swift */,
+				DC6EE56523CEEB2A000480EB /* FBLoginContainerView.swift */,
 				B29EEA2623C84B48003247FD /* Auth.swift */,
 				B20101C723C842900083B675 /* Assets.xcassets */,
 				B20101CC23C842900083B675 /* LaunchScreen.storyboard */,
@@ -223,6 +226,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DC6EE56623CEEB2A000480EB /* FBLoginContainerView.swift in Sources */,
 				B29EEA2723C84B48003247FD /* Auth.swift in Sources */,
 				B20101C223C8428E0083B675 /* AppDelegate.swift in Sources */,
 				B20101C423C8428E0083B675 /* SceneDelegate.swift in Sources */,

@@ -22,17 +22,64 @@ struct AuthInitializers {
 
 
 // --------------
-// SessionStore
+// Model
 
 struct LoggedInUser : Equatable {
     var uid: String
     var photoURL: URL?
+    var displayName: String?
 }
+
+struct WakeyUser {
+    var uid: String
+    var displayName: String
+}
+
+// --------------
+// UserInfoStore
+
+class UserInfoStore: ObservableObject {
+    @Published var users: [WakeyUser] = []
+    
+    init() {
+        Firestore.firestore().collection("userInfos")
+            .addSnapshotListener { collectionSnapshot, error in
+                guard let collection = collectionSnapshot else {
+                    print("Error fetching collection: \(error!)")
+                    return
+                }
+                let wakeyUsers = collection.documents.map {
+                    // TODO: Improve coeriscon, see if we can coerce firebase documents into
+                    // structs
+                    return WakeyUser(
+                        uid: $0["uid"]! as! String,
+                        displayName: $0["displayName"]! as! String
+                    )
+                }
+                self.users = wakeyUsers
+                print("Current data: \(wakeyUsers)")
+        }
+    }
+
+    static func onSignIn(loggedInUser: LoggedInUser) {
+        let db = Firestore.firestore()
+        db.collection("userInfos").document(loggedInUser.uid).setData([
+            "uid": loggedInUser.uid,
+            "displayName": loggedInUser.displayName as Any,
+        ], merge: true)
+        print("Saved \(loggedInUser.uid) to db")
+    }
+}
+
+// --------------
+// SessionStore
 
 /**
  SessionStore keeps track of the logged in user, and acts as a facade for Firebase Auth APIs
  We subscribe to Firebase's Auth state changes, and update logged in user accordingly
  The work for  FB signin is handled in `FBLoginContainer`
+ 
+ TODO: Think about whether we want to use this pattern of stores for managing daata
  */
 class SessionStore : ObservableObject {
     @Published var loggedInUser: LoggedInUser?
@@ -40,16 +87,19 @@ class SessionStore : ObservableObject {
     var handle: AuthStateDidChangeListenerHandle?
 
     init() {
-        handle = Auth.auth().addStateDidChangeListener { (auth, user) in
-            guard let loggedInUser = user else {
+        handle = Auth.auth().addStateDidChangeListener { (auth, fireUser) in
+            guard let fireUser = fireUser else {
                 self.loggedInUser = nil
                 self.isLoading = false
                 return
             }
-            self.loggedInUser = LoggedInUser(
-                uid: loggedInUser.uid,
-                photoURL: loggedInUser.photoURL
+            let loggedInUser = LoggedInUser(
+                uid: fireUser.uid,
+                photoURL: fireUser.photoURL,
+                displayName: fireUser.displayName
             )
+            self.loggedInUser = loggedInUser
+            UserInfoStore.onSignIn(loggedInUser: loggedInUser)
             self.isLoading = false
         }
     }
@@ -67,47 +117,5 @@ class SessionStore : ObservableObject {
     
     static func signOut() {
         try! Auth.auth().signOut()
-    }
-}
-
-// --------------
-// FB
-
-/**
- Wraps FB's FBLoginButton into a `UIViewRepresentable`.
- This lets us embed this into SwiftUI components
- Also handles the glue into Firebase
- */
-struct FBLoginContainer: UIViewRepresentable {
-    func makeCoordinator() -> FBLoginContainer.Coordinator {
-        return FBLoginContainer.Coordinator()
-    }
-
-    func makeUIView(context: UIViewRepresentableContext<FBLoginContainer>) -> FBLoginButton {
-        let loginButton = FBLoginButton()
-        loginButton.delegate = context.coordinator
-
-        return loginButton
-    }
-
-    // Needed to conform to UIViewRepresentable's protocol, but not used
-    func updateUIView(_ uiView: FBLoginButton, context: UIViewRepresentableContext<FBLoginContainer>) {}
-
-    class Coordinator : NSObject, LoginButtonDelegate {
-        func loginButton(_ loginButton: FBLoginButton, didCompleteWith result: LoginManagerLoginResult?, error: Error?) {
-            if let error = error {
-                print(error.localizedDescription)
-                return
-            }
-            guard let currentAccessToken = AccessToken.current else {
-                print("uh oh, no access token")
-                return
-            }
-            SessionStore.signInWithFacebook(accessToken: currentAccessToken)
-        }
-
-        func loginButtonDidLogOut(_ loginButton: FBLoginButton) {
-            SessionStore.signOut()
-        }
     }
 }
