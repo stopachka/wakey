@@ -13,7 +13,7 @@
 		B20101C823C842900083B675 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B20101C723C842900083B675 /* Assets.xcassets */; };
 		B20101CB23C842900083B675 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B20101CA23C842900083B675 /* Preview Assets.xcassets */; };
 		B20101CE23C842900083B675 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B20101CC23C842900083B675 /* LaunchScreen.storyboard */; };
-		B29EEA2723C84B48003247FD /* Auth.swift in Sources */ = {isa = PBXBuildFile; fileRef = B29EEA2623C84B48003247FD /* Auth.swift */; };
+		B205A0D523D77F2000F8E1AD /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B205A0D423D77F2000F8E1AD /* MainView.swift */; };
 		B29EEA2B23C84E4A003247FD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B29EEA2A23C84E4A003247FD /* GoogleService-Info.plist */; };
 		CB5363FCC2F63E3CC93B8391 /* Pods_wakey.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D61AF390709FCA59EF3F2F7E /* Pods_wakey.framework */; };
 		DC6EE56623CEEB2A000480EB /* FBLoginContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC6EE56523CEEB2A000480EB /* FBLoginContainerView.swift */; };
@@ -30,7 +30,7 @@
 		B20101CA23C842900083B675 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		B20101CD23C842900083B675 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		B20101CF23C842900083B675 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		B29EEA2623C84B48003247FD /* Auth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Auth.swift; sourceTree = "<group>"; };
+		B205A0D423D77F2000F8E1AD /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		B29EEA2A23C84E4A003247FD /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		D61AF390709FCA59EF3F2F7E /* Pods_wakey.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_wakey.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC6EE56523CEEB2A000480EB /* FBLoginContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FBLoginContainerView.swift; sourceTree = "<group>"; };
@@ -83,9 +83,9 @@
 				B29EEA2A23C84E4A003247FD /* GoogleService-Info.plist */,
 				B20101C123C8428E0083B675 /* AppDelegate.swift */,
 				B20101C323C8428E0083B675 /* SceneDelegate.swift */,
+				B205A0D423D77F2000F8E1AD /* MainView.swift */,
 				B20101C523C8428E0083B675 /* ContentView.swift */,
 				DC6EE56523CEEB2A000480EB /* FBLoginContainerView.swift */,
-				B29EEA2623C84B48003247FD /* Auth.swift */,
 				B20101C723C842900083B675 /* Assets.xcassets */,
 				B20101CC23C842900083B675 /* LaunchScreen.storyboard */,
 				B20101CF23C842900083B675 /* Info.plist */,
@@ -227,7 +227,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DC6EE56623CEEB2A000480EB /* FBLoginContainerView.swift in Sources */,
-				B29EEA2723C84B48003247FD /* Auth.swift in Sources */,
+				B205A0D523D77F2000F8E1AD /* MainView.swift in Sources */,
 				B20101C223C8428E0083B675 /* AppDelegate.swift in Sources */,
 				B20101C423C8428E0083B675 /* SceneDelegate.swift in Sources */,
 				B20101C623C8428E0083B675 /* ContentView.swift in Sources */,
