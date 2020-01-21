@@ -22,8 +22,11 @@ class FBLoginButtonCoordinator : NSObject, LoginButtonDelegate {
         self.handleSignOut = handleSignOut
     }
     
-    func loginButton(_ loginButton: FBLoginButton, didCompleteWith result: LoginManagerLoginResult?, error: Error?) {
-        // TODO(stopachka)
+    func loginButton(
+        _ loginButton: FBLoginButton,
+        didCompleteWith result: LoginManagerLoginResult?,
+        error: Error?
+    ) {
         if let error = error {
             handleError("Facebook Auth returned an error")
             print(error.localizedDescription)

@@ -90,7 +90,12 @@ struct ContentView : View {
     }
     
     func handleSignOut() {
-        try! Auth.auth().signOut()
+        do {
+            try Auth.auth().signOut()
+        } catch {
+            self.error = "Oi. we failed to log out"
+            print("failed to log out")
+        }
     }
     
     var body: some View {
