@@ -60,7 +60,6 @@ struct ContentView : View {
             guard let fireUser = fireUser else {
                 self.loggedInUser = nil
                 self.isLoggingIn = false
-                self.error = "Oi. We couldn't log you in."
                 return
             }
             let loggedInUser = User(
