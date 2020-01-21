@@ -44,15 +44,9 @@ struct FriendFeed : View {
 
 struct FriendFeed_Previews: PreviewProvider {
     static var previews: some View {
-        let joe = User(
-            uid: "uid-a", photoURL: nil, displayName: "Joe Averbukh"
-        )
-        let stopa = User(
-            uid: "uid-b", photoURL: nil, displayName: "Stepan Parunashvili"
-        )
-        return FriendFeed(
-            loggedInUser: joe,
-            allUsers: [stopa, joe]
+        FriendFeed(
+            loggedInUser: TestUtils.joe,
+            allUsers: [TestUtils.stopa, TestUtils.joe]
         )
     }
 }

@@ -91,13 +91,7 @@ struct MainView : View {
 
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
-        let joe = User(
-            uid: "uid-a", photoURL: nil, displayName: "Joe Averbukh"
-        )
-        let stopa = User(
-            uid: "uid-b", photoURL: nil, displayName: "Stepan Parunashvili"
-        )
-        return Group {
+        Group {
             MainView(
                 isLoggingIn: true,
                 error: nil,
@@ -128,8 +122,8 @@ struct MainView_Previews: PreviewProvider {
             MainView(
                 isLoggingIn: false,
                 error: nil,
-                loggedInUser: joe,
-                allUsers: [stopa, joe],
+                loggedInUser: TestUtils.joe,
+                allUsers: [TestUtils.stopa, TestUtils.joe],
                 handleError: { _ in },
                 handleSignInWithFacebook: { _ in },
                 handleSignOut: { }
