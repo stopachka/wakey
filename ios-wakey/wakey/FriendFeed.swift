@@ -18,6 +18,7 @@ struct ProfilePhoto : View {
             .overlay(Circle().stroke(Color.white, lineWidth: 4))
     }
 }
+
 struct FriendFeed : View {
     var loggedInUser : User
     var allUsers : [User]

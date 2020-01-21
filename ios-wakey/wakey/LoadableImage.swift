@@ -9,7 +9,7 @@ struct LoadableImage : View {
         if let uiImage = uiImage {
             return AnyView(Image(uiImage: uiImage))
         } else {
-            return AnyView(Rectangle())
+            return AnyView(Rectangle().fill(Color.secondary))
         }
     }
 }
@@ -22,6 +22,10 @@ struct URLImage : View {
     // We may want to introduce a type of cached fetcher here
     // Maybe it should be an `EnvironmentObject`
     func load() {
+        // TODO(stopachka)
+        // what if _url_ changes?
+        // This would _not_ fetch, because this only happens `onAppear`
+        // Using the cached fetcher approach may be best as a result
         guard let url = url else {
             return
         }
@@ -48,6 +52,7 @@ struct LoadableImage_Previews: PreviewProvider {
             LoadableImage(uiImage: UIImage(systemName: "photo"))
                 .frame(width: 100, height: 100, alignment: .center)
                 .previewDisplayName("Loaded")
+
         }
     }
 }

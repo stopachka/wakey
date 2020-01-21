@@ -89,13 +89,13 @@
 				B20101C323C8428E0083B675 /* SceneDelegate.swift */,
 				B205A0D423D77F2000F8E1AD /* MainView.swift */,
 				B205A0DC23D7B0C600F8E1AD /* FriendFeed.swift */,
+				B205A0DA23D7AF4E00F8E1AD /* LoadableImage.swift */,
 				B205A0D623D79EE400F8E1AD /* FBLoginContainer.swift */,
 				B20101C523C8428E0083B675 /* ContentView.swift */,
 				B20101C723C842900083B675 /* Assets.xcassets */,
 				B20101CC23C842900083B675 /* LaunchScreen.storyboard */,
 				B20101CF23C842900083B675 /* Info.plist */,
 				B20101C923C842900083B675 /* Preview Content */,
-				B205A0DA23D7AF4E00F8E1AD /* LoadableImage.swift */,
 			);
 			path = wakey;
 			sourceTree = "<group>";
