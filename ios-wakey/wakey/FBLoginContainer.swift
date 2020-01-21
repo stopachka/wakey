@@ -73,7 +73,7 @@ struct FBLoginContainer_Previews: PreviewProvider {
                 handleError: { _ in },
                 handleSignIn: { _ in },
                 handleSignOut: {}
-            ).frame(width: 0, height: 0, alignment: .center).padding()
+            ).frame(width: 0, height: 50, alignment: .center).padding()
         }
     }
 }
