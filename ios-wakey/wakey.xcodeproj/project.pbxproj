@@ -60,7 +60,6 @@
 		B20101B523C8428E0083B675 = {
 			isa = PBXGroup;
 			children = (
-				B205A0D623D79EE400F8E1AD /* FBLoginContainer.swift */,
 				B20101C023C8428E0083B675 /* wakey */,
 				B20101BF23C8428E0083B675 /* Products */,
 				25A027FED0C3D1563B5DD3C7 /* Pods */,
@@ -85,6 +84,7 @@
 				B20101C123C8428E0083B675 /* AppDelegate.swift */,
 				B20101C323C8428E0083B675 /* SceneDelegate.swift */,
 				B205A0D423D77F2000F8E1AD /* MainView.swift */,
+				B205A0D623D79EE400F8E1AD /* FBLoginContainer.swift */,
 				B20101C523C8428E0083B675 /* ContentView.swift */,
 				B20101C723C842900083B675 /* Assets.xcassets */,
 				B20101CC23C842900083B675 /* LaunchScreen.storyboard */,
