@@ -52,21 +52,6 @@ struct LoginScreen : View {
     }
 }
 
-struct FriendFeed : View {
-    var loggedInUser : User
-    var allUsers : [User]
-    
-    var body : some View {
-        VStack {
-            ForEach(allUsers, id: \.self.uid) { user in
-                VStack {
-                    Text(user.displayName ?? "Buddy without a name")
-                }
-            }
-        }
-    }
-}
-
 struct MainView : View {
     var isLoggingIn : Bool = true
     var error : String?
@@ -144,7 +129,7 @@ struct MainView_Previews: PreviewProvider {
                 isLoggingIn: false,
                 error: nil,
                 loggedInUser: joe,
-                allUsers: [joe, stopa],
+                allUsers: [stopa, joe],
                 handleError: { _ in },
                 handleSignInWithFacebook: { _ in },
                 handleSignOut: { }

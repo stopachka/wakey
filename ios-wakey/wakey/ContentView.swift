@@ -26,13 +26,20 @@ func updateUserInfo(user : User) {
     print("Saved \(user.uid) to db")
 }
 
+func coerceToURL(input : Any?) -> URL? {
+    guard let str = input as? String else {
+        return nil
+    }
+    return URL(string: str)
+}
+
 // TODO(stopachka)
 // What if this throws?
 // How will we parse more complicated structures?
 func documentToUser(document : DocumentSnapshot) -> User {
     return User(
         uid: document["uid"] as! String,
-        photoURL: document["photoURL"] as? URL,
+        photoURL: coerceToURL(input: document["photoURL"]),
         displayName: document["displayName"] as? String
     );
 }
