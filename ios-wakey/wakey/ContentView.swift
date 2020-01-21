@@ -1,38 +1,118 @@
 import SwiftUI
+import Firebase
+import FBSDKLoginKit
+
+// TODO(stopachka)
+// Sharing `User` for both loggedInUser, and the data from `userInfo`
+// At some point, i.e if we include "wakeups", and enforce them as non-nullable,
+// We may want to structure things differently
+// For example:
+//   We could only keep the `loggedInUserId` as the state
+//   Then have the source of truth come from `userInfos`
+// Avoiding this refactor for now
+struct User {
+    var uid: String
+    var photoURL: URL?
+    var displayName: String?
+}
+
+func updateUserInfo(user : User) {
+    let db = Firestore.firestore()
+    db.collection("userInfos").document(user.uid).setData([
+        "uid": user.uid,
+        "displayName": user.displayName as Any,
+        "photoURL": user.photoURL?.absoluteString as Any
+    ], merge: true)
+    print("Saved \(user.uid) to db")
+}
+
+// TODO(stopachka)
+// What if this throws?
+// How will we parse more complicated structures?
+func documentToUser(document : DocumentSnapshot) -> User {
+    return User(
+        uid: document["uid"] as! String,
+        photoURL: document["photoURL"] as? URL,
+        displayName: document["displayName"] as? String
+    );
+}
 
 struct ContentView : View {
-    @EnvironmentObject var sessionStore: SessionStore
-    @EnvironmentObject var userInfoStore: UserInfoStore
+    @State var isLoggingIn : Bool = true
+    @State var error : String?
+    @State var loggedInUser : User?
+    @State var allUsers : [User] = []
     
-    var body: some View {
-        if sessionStore.isLoading {
-            return AnyView(Text("Loading..."))
+    // TODO(stopachka)
+    // Would be good to make sure that this only loads once
+    func connect() {
+        /**
+         Connect to Firebase's Login State
+         */
+        Auth.auth().addStateDidChangeListener { (auth, fireUser) in
+            guard let fireUser = fireUser else {
+                self.loggedInUser = nil
+                self.isLoggingIn = false
+                self.error = "Oi. We couldn't log you in."
+                return
+            }
+            let loggedInUser = User(
+                uid: fireUser.uid,
+                photoURL: fireUser.photoURL,
+                displayName: fireUser.displayName
+            )
+            self.loggedInUser = loggedInUser
+            self.isLoggingIn = false
+            
+            // Make sure that this user is _also_ stored in `userInfo`
+            updateUserInfo(user: loggedInUser)
         }
         
-        guard let loggedInUser = sessionStore.loggedInUser else {
-            return AnyView(FBLoginContainer().frame(width: 150, height: 50))
-        }
-        let wakeyUsers = userInfoStore.users
-        return AnyView(
-            VStack {
-                // TODO: Separate logged in user from user list
-                // TODO: Flesh out proper friends list display
-                    // * Load image
-                    // * Design ListRow
-                // TODO: Implement friends press -> photo
-                Text("Loogged in user: \(loggedInUser.displayName!)")
-                ForEach(wakeyUsers, id: \.self.uid) { wakeyUser in
-                    Text(wakeyUser.displayName)
+        /**
+         Connect into Firebase's "userInfo" state
+         */
+        Firestore.firestore().collection("userInfos")
+            .addSnapshotListener { collectionSnapshot, error in
+                guard let collection = collectionSnapshot else {
+                    self.error = "Uh oh, we weren't able to find your friends."
+                    print("Error fetching collection: \(error!)")
+                    return
                 }
-            }
-        )
+                let users = collection.documents.map(documentToUser)
+                print("allUsers: \(users)")
+                self.allUsers = users
+        }
+    }
+    
+    func handleSignInWithFacebook(accessToken: AccessToken) {
+        let credential = FacebookAuthProvider.credential(withAccessToken: accessToken.tokenString)
+        Auth.auth().signIn(with: credential)
+    }
+    
+    func handleSignOut() {
+        do {
+            try Auth.auth().signOut()
+        } catch {
+            self.error = "Oi. we failed to log out"
+            print("failed to log out")
+        }
+    }
+    
+    var body: some View {
+        MainView(
+            isLoggingIn: isLoggingIn,
+            error: error,
+            loggedInUser: loggedInUser,
+            allUsers: allUsers,
+            handleError: { err in self.error = err },
+            handleSignInWithFacebook: { self.handleSignInWithFacebook(accessToken: $0) },
+            handleSignOut: handleSignOut
+        ).onAppear(perform: connect)
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
         ContentView()
-            .environmentObject(SessionStore())
-            .environmentObject(UserInfoStore())
     }
 }

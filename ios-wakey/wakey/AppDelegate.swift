@@ -1,13 +1,16 @@
 import UIKit
+import Firebase
+import FBSDKLoginKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        return AuthInitializers.didFinishLaunchingWithOptions(application: application, launchOptions: launchOptions)
+        FirebaseApp.configure()
+        return ApplicationDelegate.shared.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
     
     func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-        return AuthInitializers.open(application: application, url: url)
+        return ApplicationDelegate.shared.application(application, open: url, options: options)
     }
 
     // MARK: UISceneSession Lifecycle
