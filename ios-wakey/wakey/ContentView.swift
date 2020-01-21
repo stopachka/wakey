@@ -5,7 +5,11 @@ import FBSDKLoginKit
 // TODO(stopachka)
 // Sharing `User` for both loggedInUser, and the data from `userInfo`
 // At some point, i.e if we include "wakeups", and enforce them as non-nullable,
-// We may end up needing different structs
+// We may want to structure things differently
+// For example:
+//   We could only keep the `loggedInUserId` as the state
+//   Then have the source of truth come from `userInfos`
+// Avoiding this refactor for now
 struct User {
     var uid: String
     var photoURL: URL?
@@ -14,10 +18,6 @@ struct User {
 
 func updateUserInfo(user : User) {
     let db = Firestore.firestore()
-    // TODO(stopachka)
-    // maybe we should create an extension on `User`, which allows us to do something like
-    // setData(user.dictionary())
-    // I'm not sure it's a good idea yet
     db.collection("userInfos").document(user.uid).setData([
         "uid": user.uid,
         "displayName": user.displayName as Any,
@@ -43,6 +43,8 @@ struct ContentView : View {
     @State var loggedInUser : User?
     @State var allUsers : [User] = []
     
+    // TODO(stopachka)
+    // Would be good to make sure that this only loads once
     func connect() {
         /**
          Connect to Firebase's Login State
