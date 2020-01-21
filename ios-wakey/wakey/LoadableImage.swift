@@ -2,7 +2,6 @@ import Foundation
 import SwiftUI
 import Combine
 
-
 struct LoadableImage : View {
     var uiImage : UIImage?
     var body : some View {
