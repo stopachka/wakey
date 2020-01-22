@@ -24,19 +24,21 @@ struct FriendFeed : View {
     var allUsers : [User]
     
     var body : some View {
-        VStack {
-            ForEach(
-                loggedInUserFirst(allUsers: allUsers, loggedInUser: loggedInUser),
-                id: \.self.uid
-            ) { user in
-                HStack {
-                    ProfilePhoto(imageURL: user.photoURL)
-                        .frame(width: 50, height: 50)
-                    Text(user.displayName ?? "Buddy without a name")
-                    Spacer()
+        ScrollView {
+            VStack {
+                ForEach(
+                    loggedInUserFirst(allUsers: allUsers, loggedInUser: loggedInUser),
+                    id: \.self.uid
+                ) { user in
+                    HStack {
+                        ProfilePhoto(imageURL: user.photoURL)
+                            .frame(width: 50, height: 50)
+                        Text(user.displayName ?? "Buddy without a name")
+                        Spacer()
+                    }
                 }
+                Spacer()
             }
-            Spacer()
         }
     }
 }
