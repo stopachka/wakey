@@ -97,6 +97,7 @@ struct ContentView : View {
     
     func handleSignOut() {
         do {
+            LoginManager().logOut()
             try Auth.auth().signOut()
         } catch {
             self.error = "Oi. we failed to log out"
