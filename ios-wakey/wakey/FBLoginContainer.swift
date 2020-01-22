@@ -33,7 +33,6 @@ class FBLoginButtonCoordinator : NSObject, LoginButtonDelegate {
             return
         }
         guard let currentAccessToken = AccessToken.current else {
-            handleError("Failed to get a facebook access token")
             print("Failed to get a facebook access token")
             return
         }
