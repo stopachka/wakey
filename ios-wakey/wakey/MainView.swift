@@ -81,10 +81,15 @@ struct MainView : View {
         // At this stage, we would actually want to implement navigation
         // and handle states like: "does the user need to provide a photo? etc"
         return AnyView(
-            FriendFeed(
-                loggedInUser: loggedInUser,
-                allUsers: allUsers
-            )
+            VStack {
+                FriendFeed(
+                    loggedInUser: loggedInUser,
+                    allUsers: allUsers
+                )
+                Button(action: handleSignOut) {
+                    Text("Sign out")
+                }
+            }
         )
     }
 }
