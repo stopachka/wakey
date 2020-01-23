@@ -20,6 +20,7 @@
 		B205A0DF23D7B5FD00F8E1AD /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = B205A0DE23D7B5FD00F8E1AD /* TestUtils.swift */; };
 		B229AED423D956AB00DB8710 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B229AED323D956AB00DB8710 /* HomeView.swift */; };
 		B29EEA2B23C84E4A003247FD /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B29EEA2A23C84E4A003247FD /* GoogleService-Info.plist */; };
+		B2A3A1C323DA521C00DB7FD1 /* AlarmEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2A3A1C223DA521C00DB7FD1 /* AlarmEditor.swift */; };
 		CB5363FCC2F63E3CC93B8391 /* Pods_wakey.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D61AF390709FCA59EF3F2F7E /* Pods_wakey.framework */; };
 /* End PBXBuildFile section */
 
@@ -41,6 +42,7 @@
 		B205A0DE23D7B5FD00F8E1AD /* TestUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestUtils.swift; sourceTree = "<group>"; };
 		B229AED323D956AB00DB8710 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		B29EEA2A23C84E4A003247FD /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		B2A3A1C223DA521C00DB7FD1 /* AlarmEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmEditor.swift; sourceTree = "<group>"; };
 		D61AF390709FCA59EF3F2F7E /* Pods_wakey.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_wakey.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -91,6 +93,7 @@
 				B29EEA2A23C84E4A003247FD /* GoogleService-Info.plist */,
 				B20101C123C8428E0083B675 /* AppDelegate.swift */,
 				B20101C323C8428E0083B675 /* SceneDelegate.swift */,
+				B2A3A1C223DA521C00DB7FD1 /* AlarmEditor.swift */,
 				B229AED323D956AB00DB8710 /* HomeView.swift */,
 				B205A0D423D77F2000F8E1AD /* MainView.swift */,
 				B205A0DE23D7B5FD00F8E1AD /* TestUtils.swift */,
@@ -246,6 +249,7 @@
 				B205A0D723D79EE400F8E1AD /* FBLoginContainer.swift in Sources */,
 				B205A0DB23D7AF4E00F8E1AD /* LoadableImage.swift in Sources */,
 				B20101C423C8428E0083B675 /* SceneDelegate.swift in Sources */,
+				B2A3A1C323DA521C00DB7FD1 /* AlarmEditor.swift in Sources */,
 				B20101C623C8428E0083B675 /* ContentView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

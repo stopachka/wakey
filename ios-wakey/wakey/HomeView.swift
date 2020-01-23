@@ -3,6 +3,13 @@ import SwiftUI
 
 let ONE_DAY_IN_SECONDS : TimeInterval = 86400
 
+func dateToWakeyAlarm(date: Date) -> WakeyAlarm {
+    return WakeyAlarm(
+        hour: Calendar.current.component(.hour, from: date),
+        minute: Calendar.current.component(.minute, from: date)
+    )
+}
+
 func isWakeyAlarmAheadOfDate(wakeyAlarm: WakeyAlarm, date: Date) -> Bool {
     let dateHour = Calendar.current.component(.hour, from: date)
     let dateMinute = Calendar.current.component(.minute, from: date)
@@ -21,7 +28,11 @@ func isWakeyAlarmAheadOfDate(wakeyAlarm: WakeyAlarm, date: Date) -> Bool {
 /**
     Given an alarm, returns the next date that the alarm would sound
  */
-func wakeyAlarmToNextDate(wakeyAlarm: WakeyAlarm) -> Date? {
+// TODO(stopachka)
+// This _could_ error out, if for example WakeyAlarm contains an hour > 24
+// How should we best deal with this case?
+// If we make this optional, we'll effectively bleed this edge case throughout the code
+func wakeyAlarmToNextDate(wakeyAlarm: WakeyAlarm) -> Date {
     let now = Date()
     
     let referenceDate = isWakeyAlarmAheadOfDate(wakeyAlarm: wakeyAlarm, date: now)
@@ -33,27 +44,15 @@ func wakeyAlarmToNextDate(wakeyAlarm: WakeyAlarm) -> Date? {
         minute: wakeyAlarm.minute,
         second: 0,
         of: referenceDate
-    )
+    )!
 }
 
-struct EmptyAlarmView : View {
-    var body : some View {
-        Text("New Alarm")
-    }
-}
 
 struct HomeView : View {
     var wakeyAlarm : WakeyAlarm
     
     var body : some View {
-        guard let date = wakeyAlarmToNextDate(wakeyAlarm: wakeyAlarm) else {
-            // TODO(stopachka)
-            // Do we want to show this kind of error?
-            // Maybe we should apologize and ask them to edit the alarm
-            return AnyView(
-                ErrorScreen(error: "Uh oh. We couldn't parse this alarm")
-            )
-        }
+        let date = wakeyAlarmToNextDate(wakeyAlarm: wakeyAlarm)
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
         return AnyView(
@@ -78,13 +77,7 @@ struct HomeView : View {
 
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
-        Group {
-         HomeView(wakeyAlarm: WakeyAlarm(hour: 17, minute: 55))
+        HomeView(wakeyAlarm: WakeyAlarm(hour: 17, minute: 55))
             .padding()
-            .previewDisplayName("Example Alarm")
-         HomeView(wakeyAlarm: WakeyAlarm(hour: 107, minute: 55))
-            .padding()
-            .previewDisplayName("Broken Time")
-        }
     }
 }
