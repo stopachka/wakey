@@ -1,6 +1,9 @@
 import Foundation
 import SwiftUI
 
+// TODO(stopachka) consider moving these functions
+// to something like AlarmUtils, etc
+
 let ONE_DAY_IN_SECONDS : TimeInterval = 86400
 
 func dateToWakeyAlarm(date: Date) -> WakeyAlarm {
