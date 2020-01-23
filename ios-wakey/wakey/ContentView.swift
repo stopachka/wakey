@@ -2,6 +2,9 @@ import SwiftUI
 import Firebase
 import FBSDKLoginKit
 
+//----
+// Data
+
 // TODO(stopachka)
 // Sharing `User` for both loggedInUser, and the data from `userInfo`
 // At some point, i.e if we include "wakeups", and enforce them as non-nullable,
@@ -11,20 +14,21 @@ import FBSDKLoginKit
 //   Then have the source of truth come from `userInfos`
 // Avoiding this refactor for now
 struct User {
-    var uid: String
+    let uid: String
     var photoURL: URL?
     var displayName: String?
 }
 
-func updateUserInfo(user : User) {
-    let db = Firestore.firestore()
-    db.collection("userInfos").document(user.uid).setData([
-        "uid": user.uid,
-        "displayName": user.displayName as Any,
-        "photoURL": user.photoURL?.absoluteString as Any
-    ], merge: true)
-    print("Saved \(user.uid) to db")
+struct WakeyAlarm {
+    var hour: Int
+    var minute: Int
+    // TODO(stopacka)
+    // We could have `repeatDays`, `snoozeConfig`, etc
 }
+
+
+//----
+// Data Transformations
 
 func coerceToURL(input : Any?) -> URL? {
     guard let str = input as? String else {
@@ -43,6 +47,22 @@ func documentToUser(document : DocumentSnapshot) -> User {
         displayName: document["displayName"] as? String
     );
 }
+
+//----
+// DB Helpers
+
+func updateUserInfo(user : User) {
+    let db = Firestore.firestore()
+    db.collection("userInfos").document(user.uid).setData([
+        "uid": user.uid,
+        "displayName": user.displayName as Any,
+        "photoURL": user.photoURL?.absoluteString as Any
+    ], merge: true)
+    print("Saved \(user.uid) to db")
+}
+
+//----
+// ContentView
 
 struct ContentView : View {
     @State var isLoggingIn : Bool = true
