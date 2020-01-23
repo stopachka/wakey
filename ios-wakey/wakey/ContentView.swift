@@ -91,12 +91,17 @@ struct ContentView : View {
     }
     
     func handleSignInWithFacebook(accessToken: AccessToken) {
-        let credential = FacebookAuthProvider.credential(withAccessToken: accessToken.tokenString)
+        let credential =    FacebookAuthProvider.credential(withAccessToken: accessToken.tokenString)
+        self.isLoggingIn = true
+        // Auth.auth().signIn will trigger
+        // Auth.auth().addStateDidChangeListener
+        // which will then turn isLoggingIn to false
         Auth.auth().signIn(with: credential)
     }
     
     func handleSignOut() {
         do {
+            LoginManager().logOut()
             try Auth.auth().signOut()
         } catch {
             self.error = "Oi. we failed to log out"
