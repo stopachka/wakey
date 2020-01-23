@@ -47,6 +47,9 @@ struct HomeView : View {
     
     var body : some View {
         guard let date = wakeyAlarmToNextDate(wakeyAlarm: wakeyAlarm) else {
+            // TODO(stopachka)
+            // Do we want to show this kind of error?
+            // Maybe we should apologize and ask them to edit the alarm
             return AnyView(
                 ErrorScreen(error: "Uh oh. We couldn't parse this alarm")
             )
@@ -55,7 +58,7 @@ struct HomeView : View {
         formatter.dateFormat = "h:mm a"
         return AnyView(
             VStack {
-                // TODO(stopachka) let's style this : ) 
+                // TODO(stopachka) let's style this : )
                 HStack {
                     Text("\(formatter.string(from: date)    )")
                         .font(.largeTitle)
