@@ -1,15 +1,5 @@
 import SwiftUI
 
-func loggedInUserFirst(allUsers: [User], loggedInUser: User) -> [User] {
-    let rest = allUsers.filter { user in
-        user.uid != loggedInUser.uid
-    }
-    let first = allUsers.filter { user in
-        user.uid == loggedInUser.uid
-    }
-    return first + rest
-}
-
 struct ProfilePhoto : View {
     var imageURL : URL?
     var body : some View {
@@ -21,13 +11,13 @@ struct ProfilePhoto : View {
 
 struct FriendFeed : View {
     var loggedInUser : User
-    var allUsers : [User]
+    var friends : [User]
     
     var body : some View {
         ScrollView {
             VStack {
                 ForEach(
-                    loggedInUserFirst(allUsers: allUsers, loggedInUser: loggedInUser),
+                    ([loggedInUser] + friends),
                     id: \.self.uid
                 ) { user in
                     HStack {
@@ -48,7 +38,7 @@ struct FriendFeed_Previews: PreviewProvider {
     static var previews: some View {
         FriendFeed(
             loggedInUser: TestUtils.joe,
-            allUsers: [TestUtils.stopa, TestUtils.joe]
+            friends: [TestUtils.stopa]
         )
     }
 }

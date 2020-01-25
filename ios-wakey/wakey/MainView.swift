@@ -52,11 +52,22 @@ struct LoginScreen : View {
     }
 }
 
+func splitIntoLoggedInUserAndFriends(allUsers: [User], loggedInUserUID: String) -> (User?, [User]) {
+    let friends = allUsers.filter { user in
+        user.uid != loggedInUserUID
+    }
+    let loggedInUser = allUsers.filter { user in
+        user.uid == loggedInUserUID
+    }.first
+    return (loggedInUser, friends)
+}
+
 struct MainView : View {
-    var isLoggingIn : Bool = true
+    var isLoggingIn: Bool
+    var isLoadingUserInfo: Bool
+    var loggedInUserUID: String?
+    var allUsers: [User]
     var error : String?
-    var loggedInUser : User?
-    var allUsers : [User]
     var handleError : (String) -> Void
     var handleSignInWithFacebook : (AccessToken) -> Void
     var handleSignOut : () -> Void
@@ -68,7 +79,7 @@ struct MainView : View {
         if isLoggingIn {
             return AnyView(LoadingScreen())
         }
-        guard let loggedInUser = loggedInUser else {
+        guard let loggedInUserUID = loggedInUserUID else {
             return AnyView(
                 LoginScreen(
                     handleError: handleError,
@@ -77,6 +88,25 @@ struct MainView : View {
                 )
             )
         }
+        if isLoadingUserInfo {
+            return AnyView(LoadingScreen())
+        }
+        let (potentialLoggedInUser, friends) = splitIntoLoggedInUserAndFriends(
+            allUsers: allUsers,
+            loggedInUserUID: loggedInUserUID
+        )
+        guard let loggedInUser = potentialLoggedInUser else {
+            // TODO(stopachka)
+            // This could happen in the following scenario:
+                // User just signs up
+                // We haven't written to the "userInfos" table yet
+                // For some split second, we would have the user hit a loading state
+            // We may want to do better here.
+            // One idea could be to track the "saving user" state, or something like that
+            // Another could be to do a separate call to fetch the "loggedInUser", and provide that from the top level
+            return AnyView(LoadingScreen())
+        }
+        
         // TODO(stopachka)
         // At this stage, we would actually want to implement navigation
         // and handle states like: "does the user need to provide a photo? etc"
@@ -84,7 +114,7 @@ struct MainView : View {
             VStack {
                 FriendFeed(
                     loggedInUser: loggedInUser,
-                    allUsers: allUsers
+                    friends: friends
                 )
                 Button(action: handleSignOut) {
                     Text("Sign out")
@@ -99,26 +129,28 @@ struct MainView_Previews: PreviewProvider {
         Group {
             MainView(
                 isLoggingIn: true,
-                error: nil,
-                loggedInUser: nil,
+                isLoadingUserInfo: true,
+                loggedInUserUID: nil,
                 allUsers: [],
+                error: nil,
                 handleError: { _ in },
                 handleSignInWithFacebook: { _ in },
                 handleSignOut: { }
             ).previewDisplayName("Logging In")
             MainView(
                 isLoggingIn: true,
-                error: "This is an example error message",
-                loggedInUser: nil,
+                isLoadingUserInfo: true,
+                loggedInUserUID: nil,
                 allUsers: [],
+                error: "This is an example error message",
                 handleError: { _ in },
                 handleSignInWithFacebook: { _ in },
                 handleSignOut: { }
             ).previewDisplayName("Error")
             MainView(
                 isLoggingIn: false,
-                error: nil,
-                loggedInUser: nil,
+                isLoadingUserInfo: true,
+                loggedInUserUID: nil,
                 allUsers: [],
                 handleError: { _ in },
                 handleSignInWithFacebook: { _ in },
@@ -126,8 +158,17 @@ struct MainView_Previews: PreviewProvider {
             ).previewDisplayName("Sign In")
             MainView(
                 isLoggingIn: false,
-                error: nil,
-                loggedInUser: TestUtils.joe,
+                isLoadingUserInfo: true,
+                loggedInUserUID: TestUtils.joe.uid,
+                allUsers: [],
+                handleError: { _ in },
+                handleSignInWithFacebook: { _ in },
+                handleSignOut: { }
+            ).previewDisplayName("Loading allUsers")
+            MainView(
+                isLoggingIn: false,
+                isLoadingUserInfo: false,
+                loggedInUserUID: TestUtils.joe.uid,
                 allUsers: [TestUtils.stopa, TestUtils.joe],
                 handleError: { _ in },
                 handleSignInWithFacebook: { _ in },
