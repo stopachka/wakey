@@ -5,14 +5,6 @@ import FBSDKLoginKit
 //----
 // Data
 
-// TODO(stopachka)
-// Sharing `User` for both loggedInUser, and the data from `userInfo`
-// At some point, i.e if we include "wakeups", and enforce them as non-nullable,
-// We may want to structure things differently
-// For example:
-//   We could only keep the `loggedInUserId` as the state
-//   Then have the source of truth come from `userInfos`
-// Avoiding this refactor for now
 struct User {
     let uid: String
     var photoURL: URL?
@@ -66,8 +58,9 @@ func updateUserInfo(user : User) {
 
 struct ContentView : View {
     @State var isLoggingIn : Bool = true
+    @State var isLoadingUserInfo : Bool = true
     @State var error : String?
-    @State var loggedInUser : User?
+    @State var loggedInUserUID : String?
     @State var allUsers : [User] = []
     
     // TODO(stopachka)
@@ -78,24 +71,25 @@ struct ContentView : View {
          */
         Auth.auth().addStateDidChangeListener { (auth, fireUser) in
             guard let fireUser = fireUser else {
-                self.loggedInUser = nil
+                self.loggedInUserUID = nil
                 self.isLoggingIn = false
                 return
             }
-            let loggedInUser = User(
+            let user = User(
                 uid: fireUser.uid,
                 photoURL: fireUser.photoURL,
                 displayName: fireUser.displayName
             )
-            self.loggedInUser = loggedInUser
+            self.loggedInUserUID = user.uid
             self.isLoggingIn = false
             
             // Make sure that this user is _also_ stored in `userInfo`
-            updateUserInfo(user: loggedInUser)
+            updateUserInfo(user: user)
         }
         
         /**
          Connect into Firebase's "userInfo" state
+         This is where we get all user data
          */
         Firestore.firestore().collection("userInfos")
             .addSnapshotListener { collectionSnapshot, error in
@@ -105,13 +99,13 @@ struct ContentView : View {
                     return
                 }
                 let users = collection.documents.map(documentToUser)
-                print("allUsers: \(users)")
                 self.allUsers = users
+                self.isLoadingUserInfo = false
         }
     }
     
     func handleSignInWithFacebook(accessToken: AccessToken) {
-        let credential =    FacebookAuthProvider.credential(withAccessToken: accessToken.tokenString)
+        let credential = FacebookAuthProvider.credential(withAccessToken: accessToken.tokenString)
         self.isLoggingIn = true
         // Auth.auth().signIn will trigger
         // Auth.auth().addStateDidChangeListener
@@ -130,11 +124,12 @@ struct ContentView : View {
     }
     
     var body: some View {
-        MainView(
+        return MainView(
             isLoggingIn: isLoggingIn,
-            error: error,
-            loggedInUser: loggedInUser,
+            isLoadingUserInfo: isLoadingUserInfo,
+            loggedInUserUID: loggedInUserUID,
             allUsers: allUsers,
+            error: error,
             handleError: { err in self.error = err },
             handleSignInWithFacebook: { self.handleSignInWithFacebook(accessToken: $0) },
             handleSignOut: handleSignOut
