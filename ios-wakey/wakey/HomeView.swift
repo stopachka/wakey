@@ -53,7 +53,7 @@ func wakeyAlarmToNextDate(wakeyAlarm: WakeyAlarm) -> Date {
 
 struct HomeView : View {
     var wakeyAlarm : WakeyAlarm
-    
+    var handleEdit : () -> Void
     var body : some View {
         let date = wakeyAlarmToNextDate(wakeyAlarm: wakeyAlarm)
         let formatter = DateFormatter()
@@ -66,6 +66,9 @@ struct HomeView : View {
                         .font(.largeTitle)
                         .bold()
                     Spacer()
+                    Button(action: handleEdit) {
+                        Text("Edit")
+                    }
                 }
                 .padding()
                 .background(
@@ -80,7 +83,10 @@ struct HomeView : View {
 
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
-        HomeView(wakeyAlarm: WakeyAlarm(hour: 17, minute: 55))
+        HomeView(
+            wakeyAlarm: WakeyAlarm(hour: 17, minute: 55),
+            handleEdit: { }
+        )
             .padding()
     }
 }

@@ -83,6 +83,7 @@ struct MainView : View {
     var handleSignOut : () -> Void
     var handleSaveAlarm : (WakeyAlarm) -> Void
     
+    @State var isEditingAlarm : Bool = false
     @State var activeTab : WakeyTab = .Home
     
     var body: some View {
@@ -133,9 +134,25 @@ struct MainView : View {
                 ).padding()
             )
         }
+        if isEditingAlarm {
+            return AnyView(
+                AlarmEditor(
+                    seedWakeyAlarm: alarm,
+                    handleSave: {
+                        self.handleSaveAlarm($0)
+                        self.isEditingAlarm = false
+                    }
+                )
+            )
+        }
         return AnyView(
             TabView(selection: $activeTab) {
-                HomeView(wakeyAlarm: alarm).tabItem {
+                HomeView(
+                    wakeyAlarm: alarm,
+                    handleEdit: {
+                        self.isEditingAlarm = true
+                    }
+                ).tabItem {
                     Text("Home")
                 }.padding().tag(WakeyTab.Home)
                 FriendFeed(
