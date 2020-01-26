@@ -25,8 +25,12 @@ struct ErrorScreen : View {
 
 
 struct LoadingScreen : View {
+    var description : String
     var body : some View {
-        Text("⏳").font(.largeTitle)
+        VStack {
+            Text("⏳").font(.largeTitle).padding()
+            Text(description).font(.caption)
+        }
     }
 }
 
@@ -77,7 +81,7 @@ struct MainView : View {
             return AnyView(ErrorScreen(error: error))
         }
         if isLoggingIn {
-            return AnyView(LoadingScreen())
+            return AnyView(LoadingScreen(description: "Logging in..."))
         }
         guard let loggedInUserUID = loggedInUserUID else {
             return AnyView(
@@ -89,7 +93,7 @@ struct MainView : View {
             )
         }
         if isLoadingUserInfo {
-            return AnyView(LoadingScreen())
+            return AnyView(LoadingScreen(description: "Grabbing your info..."))
         }
         let (potentialLoggedInUser, friends) = splitIntoLoggedInUserAndFriends(
             allUsers: allUsers,
@@ -104,7 +108,7 @@ struct MainView : View {
             // We may want to do better here.
             // One idea could be to track the "saving user" state, or something like that
             // Another could be to do a separate call to fetch the "loggedInUser", and provide that from the top level
-            return AnyView(LoadingScreen())
+            return AnyView(LoadingScreen(description: "Grabbing your info..."))
         }
         
         // TODO(stopachka)
