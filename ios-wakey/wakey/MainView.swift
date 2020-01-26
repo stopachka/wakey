@@ -65,7 +65,13 @@ func splitIntoLoggedInUserAndFriends(allUsers: [User], loggedInUserUID: String) 
     }.first
     return (loggedInUser, friends)
 }
+enum WakeyTab {
+    case Home
+    case Friends
+}
 
+// TODO(stopachka)
+// Consider moving out much of the view component shere into their own files
 struct MainView : View {
     var isLoggingIn: Bool
     var isLoadingUserInfo: Bool
@@ -76,6 +82,8 @@ struct MainView : View {
     var handleSignInWithFacebook : (AccessToken) -> Void
     var handleSignOut : () -> Void
     var handleSaveAlarm : (WakeyAlarm) -> Void
+    
+    @State var activeTab : WakeyTab = .Home
     
     var body: some View {
         if let error = error {
@@ -117,19 +125,7 @@ struct MainView : View {
         // i.e we _must_ be logged in to show anything
         // but some may be better respresented as "routes"
         // Considering refactoring this once we get to the "HomeView"
-        if loggedInUser.alarm != nil {
-            return AnyView(
-                VStack {
-                    FriendFeed(
-                        loggedInUser: loggedInUser,
-                        friends: friends
-                    )
-                    Button(action: { self.handleSignOut() }) {
-                        Text("Sign out")
-                    }
-                }.padding()
-            )
-        } else {
+        guard let alarm = loggedInUser.alarm else {
             return AnyView(
                 AlarmEditor(
                     seedWakeyAlarm: nil,
@@ -137,6 +133,19 @@ struct MainView : View {
                 ).padding()
             )
         }
+        return AnyView(
+            TabView(selection: $activeTab) {
+                HomeView(wakeyAlarm: alarm).tabItem {
+                    Text("Home")
+                }.padding().tag(WakeyTab.Home)
+                FriendFeed(
+                    loggedInUser: loggedInUser,
+                    friends: friends
+                ).padding().tabItem {
+                    Text("Friends")
+                }.tag(WakeyTab.Friends)
+            }
+        )
     }
 }
 
