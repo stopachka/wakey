@@ -25,8 +25,12 @@ struct ErrorScreen : View {
 
 
 struct LoadingScreen : View {
+    var description : String
     var body : some View {
-        Text("⏳").font(.largeTitle)
+        VStack {
+            Text("⏳").font(.largeTitle).padding()
+            Text(description).font(.caption)
+        }
     }
 }
 
@@ -71,13 +75,14 @@ struct MainView : View {
     var handleError : (String) -> Void
     var handleSignInWithFacebook : (AccessToken) -> Void
     var handleSignOut : () -> Void
+    var handleSaveAlarm : (WakeyAlarm) -> Void
     
     var body: some View {
         if let error = error {
             return AnyView(ErrorScreen(error: error))
         }
         if isLoggingIn {
-            return AnyView(LoadingScreen())
+            return AnyView(LoadingScreen(description: "Logging in..."))
         }
         guard let loggedInUserUID = loggedInUserUID else {
             return AnyView(
@@ -89,7 +94,7 @@ struct MainView : View {
             )
         }
         if isLoadingUserInfo {
-            return AnyView(LoadingScreen())
+            return AnyView(LoadingScreen(description: "Grabbing your info..."))
         }
         let (potentialLoggedInUser, friends) = splitIntoLoggedInUserAndFriends(
             allUsers: allUsers,
@@ -104,23 +109,34 @@ struct MainView : View {
             // We may want to do better here.
             // One idea could be to track the "saving user" state, or something like that
             // Another could be to do a separate call to fetch the "loggedInUser", and provide that from the top level
-            return AnyView(LoadingScreen())
+            return AnyView(LoadingScreen(description: "Grabbing your info..."))
         }
-        
         // TODO(stopachka)
-        // At this stage, we would actually want to implement navigation
-        // and handle states like: "does the user need to provide a photo? etc"
-        return AnyView(
-            VStack {
-                FriendFeed(
-                    loggedInUser: loggedInUser,
-                    friends: friends
-                )
-                Button(action: handleSignOut) {
-                    Text("Sign out")
-                }
-            }
-        )
+        // This view has a _lot_ of logic
+        // Some are intrinsic to figuring _everything_ out.
+        // i.e we _must_ be logged in to show anything
+        // but some may be better respresented as "routes"
+        // Considering refactoring this once we get to the "HomeView"
+        if loggedInUser.alarm != nil {
+            return AnyView(
+                VStack {
+                    FriendFeed(
+                        loggedInUser: loggedInUser,
+                        friends: friends
+                    )
+                    Button(action: { self.handleSignOut() }) {
+                        Text("Sign out")
+                    }
+                }.padding()
+            )
+        } else {
+            return AnyView(
+                AlarmEditor(
+                    seedWakeyAlarm: nil,
+                    handleSave: { alarm in self.handleSaveAlarm(alarm) }
+                ).padding()
+            )
+        }
     }
 }
 
@@ -135,7 +151,8 @@ struct MainView_Previews: PreviewProvider {
                 error: nil,
                 handleError: { _ in },
                 handleSignInWithFacebook: { _ in },
-                handleSignOut: { }
+                handleSignOut: { },
+                handleSaveAlarm: { _ in }
             ).previewDisplayName("Logging In")
             MainView(
                 isLoggingIn: true,
@@ -145,7 +162,8 @@ struct MainView_Previews: PreviewProvider {
                 error: "This is an example error message",
                 handleError: { _ in },
                 handleSignInWithFacebook: { _ in },
-                handleSignOut: { }
+                handleSignOut: { },
+                handleSaveAlarm: { _ in }
             ).previewDisplayName("Error")
             MainView(
                 isLoggingIn: false,
@@ -154,7 +172,8 @@ struct MainView_Previews: PreviewProvider {
                 allUsers: [],
                 handleError: { _ in },
                 handleSignInWithFacebook: { _ in },
-                handleSignOut: { }
+                handleSignOut: { },
+                handleSaveAlarm: { _ in }
             ).previewDisplayName("Sign In")
             MainView(
                 isLoggingIn: false,
@@ -163,7 +182,8 @@ struct MainView_Previews: PreviewProvider {
                 allUsers: [],
                 handleError: { _ in },
                 handleSignInWithFacebook: { _ in },
-                handleSignOut: { }
+                handleSignOut: { },
+                handleSaveAlarm: { _ in }
             ).previewDisplayName("Loading allUsers")
             MainView(
                 isLoggingIn: false,
@@ -172,8 +192,19 @@ struct MainView_Previews: PreviewProvider {
                 allUsers: [TestUtils.stopa, TestUtils.joe],
                 handleError: { _ in },
                 handleSignInWithFacebook: { _ in },
-                handleSignOut: { }
-            ).previewDisplayName("Friend Feed")
+                handleSignOut: { },
+                handleSaveAlarm: { _ in }
+            ).previewDisplayName("No Alarm Set")
+            MainView(
+                isLoggingIn: false,
+                isLoadingUserInfo: false,
+                loggedInUserUID: TestUtils.joe.uid,
+                allUsers: [TestUtils.stopa, TestUtils.joeWith8AMAlarm],
+                handleError: { _ in },
+                handleSignInWithFacebook: { _ in },
+                handleSignOut: { },
+                handleSaveAlarm: { _ in }
+            ).previewDisplayName("With Alarm")
         }
     }
 }

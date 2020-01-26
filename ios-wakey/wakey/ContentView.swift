@@ -5,11 +5,6 @@ import FBSDKLoginKit
 //----
 // Data
 
-struct User {
-    let uid: String
-    var photoURL: URL?
-    var displayName: String?
-}
 
 struct WakeyAlarm {
     var hour: Int
@@ -18,9 +13,26 @@ struct WakeyAlarm {
     // We could have `repeatDays`, `snoozeConfig`, etc
 }
 
+struct User {
+    let uid: String
+    var photoURL: URL?
+    var displayName: String?
+    var alarm: WakeyAlarm?
+}
 
 //----
 // Data Transformations
+
+func coerceToWakeyAlarm(input : Any? ) -> WakeyAlarm? {
+    guard let input = input else {
+        return nil
+    }
+    let dict = input as! [String:Int]
+    return WakeyAlarm(
+        hour: dict["hour"]!,
+        minute: dict["minute"]!
+    )
+}
 
 func coerceToURL(input : Any?) -> URL? {
     guard let str = input as? String else {
@@ -34,10 +46,11 @@ func coerceToURL(input : Any?) -> URL? {
 // How will we parse more complicated structures?
 func documentToUser(document : DocumentSnapshot) -> User {
     return User(
-        uid: document["uid"] as! String,
+        uid: document["uid"] as? String ?? "foo",
         photoURL: coerceToURL(input: document["photoURL"]),
-        displayName: document["displayName"] as? String
-    );
+        displayName: document["displayName"] as? String,
+        alarm: coerceToWakeyAlarm(input: document["alarm"])
+    )
 }
 
 //----
@@ -51,6 +64,17 @@ func updateUserInfo(user : User) {
         "photoURL": user.photoURL?.absoluteString as Any
     ], merge: true)
     print("Saved \(user.uid) to db")
+}
+
+func saveAlarmToDB(loggedInUserUID: String, alarm: WakeyAlarm) {
+    let db = Firestore.firestore()
+    db.collection("userInfos").document(loggedInUserUID).setData([
+        "alarm": [
+            "hour": alarm.hour,
+            "minute": alarm.minute
+        ]
+    ], merge: true)
+    print("Saved \(loggedInUserUID)'s alarm to db")
 }
 
 //----
@@ -123,6 +147,16 @@ struct ContentView : View {
         }
     }
     
+    func handleSaveAlarm(alarm: WakeyAlarm) {
+        saveAlarmToDB(
+            // TODO(stopachka)
+            // Unhappy that I have to force the uid here
+            // Could have handleSaveAlarm pass it in, but that feels more off
+            loggedInUserUID: loggedInUserUID!,
+            alarm: alarm
+        )
+    }
+    
     var body: some View {
         return MainView(
             isLoggingIn: isLoggingIn,
@@ -132,7 +166,8 @@ struct ContentView : View {
             error: error,
             handleError: { err in self.error = err },
             handleSignInWithFacebook: { self.handleSignInWithFacebook(accessToken: $0) },
-            handleSignOut: handleSignOut
+            handleSignOut: handleSignOut,
+            handleSaveAlarm: { self.handleSaveAlarm(alarm: $0) }
         ).onAppear(perform: connect)
     }
 }
