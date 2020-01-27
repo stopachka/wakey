@@ -60,21 +60,21 @@ struct HomeView : View {
         formatter.dateFormat = "h:mm a"
         return AnyView(
             VStack {
-                // TODO(stopachka) let's style this : )
                 HStack {
-                    Text("\(formatter.string(from: date)    )")
-                        .font(.largeTitle)
-                        .bold()
                     Spacer()
                     Button(action: handleEdit) {
+                        Image(systemName: "pencil")
                         Text("Edit")
                     }
                 }
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 5)
-                        .fill(Color(red: 0, green: 0, blue: 0, opacity: 0.05))
-                )
+                Spacer()
+                Text("☀️ \(formatter.string(from: date))")
+                    .font(.largeTitle)
+                    .bold()
+                    .padding(.bottom)
+                Text("You're alarm is set. Here's to a great day")
+                    .font(.headline)
+                    .padding(.bottom)
                 Spacer()
             }
         )

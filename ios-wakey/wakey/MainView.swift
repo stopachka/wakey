@@ -65,6 +65,7 @@ func splitIntoLoggedInUserAndFriends(allUsers: [User], loggedInUserUID: String) 
     }.first
     return (loggedInUser, friends)
 }
+
 enum WakeyTab {
     case Home
     case Friends
@@ -145,7 +146,7 @@ struct MainView : View {
                     handleCancel: {
                         self.isEditingAlarm = false
                     }
-                )
+                ).padding()
             )
         }
         return AnyView(
@@ -156,13 +157,27 @@ struct MainView : View {
                         self.isEditingAlarm = true
                     }
                 ).tabItem {
-                    Text("Home")
+                    VStack {
+                        if activeTab == .Home {
+                            Image(systemName: "house.fill")
+                        } else {
+                            Image(systemName: "house")
+                        }
+                        Text("Home")
+                    }
                 }.padding().tag(WakeyTab.Home)
                 FriendFeed(
                     loggedInUser: loggedInUser,
                     friends: friends
                 ).padding().tabItem {
-                    Text("Friends")
+                    VStack {
+                        if activeTab == .Friends {
+                            Image(systemName: "person.3.fill")
+                        } else {
+                            Image(systemName: "person.3")
+                        }
+                        Text("Friends")
+                    }
                 }.tag(WakeyTab.Friends)
             }
         )
@@ -234,6 +249,17 @@ struct MainView_Previews: PreviewProvider {
                 handleSignOut: { },
                 handleSaveAlarm: { _ in }
             ).previewDisplayName("With Alarm")
+            MainView(
+                isLoggingIn: false,
+                isLoadingUserInfo: false,
+                loggedInUserUID: TestUtils.joe.uid,
+                allUsers: [TestUtils.stopa, TestUtils.joeWith8AMAlarm],
+                handleError: { _ in },
+                handleSignInWithFacebook: { _ in },
+                handleSignOut: { },
+                handleSaveAlarm: { _ in },
+                isEditingAlarm: true
+            ).previewDisplayName("Editing Alarm")
         }
     }
 }
