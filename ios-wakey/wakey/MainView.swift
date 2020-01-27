@@ -166,10 +166,15 @@ struct MainView : View {
                         Text("Home")
                     }
                 }.padding().tag(WakeyTab.Home)
-                FriendFeed(
-                    loggedInUser: loggedInUser,
-                    friends: friends
-                ).padding().tabItem {
+                VStack {
+                    FriendFeed(
+                        loggedInUser: loggedInUser,
+                        friends: friends
+                    )
+                    Button(action: { self.handleSignOut() }) {
+                        Text("Sign out")
+                    }
+                }.padding().tabItem {
                     VStack {
                         if activeTab == .Friends {
                             Image(systemName: "person.3.fill")
