@@ -65,6 +65,7 @@ func splitIntoLoggedInUserAndFriends(allUsers: [User], loggedInUserUID: String) 
     }.first
     return (loggedInUser, friends)
 }
+
 enum WakeyTab {
     case Home
     case Friends
@@ -83,6 +84,7 @@ struct MainView : View {
     var handleSignOut : () -> Void
     var handleSaveAlarm : (WakeyAlarm) -> Void
     
+    @State var isEditingAlarm : Bool = false
     @State var activeTab : WakeyTab = .Home
     
     var body: some View {
@@ -127,22 +129,55 @@ struct MainView : View {
         // Considering refactoring this once we get to the "HomeView"
         guard let alarm = loggedInUser.alarm else {
             return AnyView(
-                AlarmEditor(
-                    seedWakeyAlarm: nil,
-                    handleSave: { alarm in self.handleSaveAlarm(alarm) }
+                CreateAlarm(
+                    handleSave: self.handleSaveAlarm
+                ).padding()
+            )
+        }
+        if isEditingAlarm {
+            return AnyView(
+                EditAlarm(
+                    seedWakeyAlarm: alarm,
+                    handleSave: {
+                        self.handleSaveAlarm($0)
+                        self.isEditingAlarm = false
+                        
+                    },
+                    handleCancel: {
+                        self.isEditingAlarm = false
+                    }
                 ).padding()
             )
         }
         return AnyView(
             TabView(selection: $activeTab) {
-                HomeView(wakeyAlarm: alarm).tabItem {
-                    Text("Home")
+                HomeView(
+                    wakeyAlarm: alarm,
+                    handleEdit: {
+                        self.isEditingAlarm = true
+                    }
+                ).tabItem {
+                    VStack {
+                        if activeTab == .Home {
+                            Image(systemName: "house.fill")
+                        } else {
+                            Image(systemName: "house")
+                        }
+                        Text("Home")
+                    }
                 }.padding().tag(WakeyTab.Home)
                 FriendFeed(
                     loggedInUser: loggedInUser,
                     friends: friends
                 ).padding().tabItem {
-                    Text("Friends")
+                    VStack {
+                        if activeTab == .Friends {
+                            Image(systemName: "person.3.fill")
+                        } else {
+                            Image(systemName: "person.3")
+                        }
+                        Text("Friends")
+                    }
                 }.tag(WakeyTab.Friends)
             }
         )
@@ -214,6 +249,17 @@ struct MainView_Previews: PreviewProvider {
                 handleSignOut: { },
                 handleSaveAlarm: { _ in }
             ).previewDisplayName("With Alarm")
+            MainView(
+                isLoggingIn: false,
+                isLoadingUserInfo: false,
+                loggedInUserUID: TestUtils.joe.uid,
+                allUsers: [TestUtils.stopa, TestUtils.joeWith8AMAlarm],
+                handleError: { _ in },
+                handleSignInWithFacebook: { _ in },
+                handleSignOut: { },
+                handleSaveAlarm: { _ in },
+                isEditingAlarm: true
+            ).previewDisplayName("Editing Alarm")
         }
     }
 }

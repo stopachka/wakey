@@ -53,25 +53,28 @@ func wakeyAlarmToNextDate(wakeyAlarm: WakeyAlarm) -> Date {
 
 struct HomeView : View {
     var wakeyAlarm : WakeyAlarm
-    
+    var handleEdit : () -> Void
     var body : some View {
         let date = wakeyAlarmToNextDate(wakeyAlarm: wakeyAlarm)
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
         return AnyView(
             VStack {
-                // TODO(stopachka) let's style this : )
                 HStack {
-                    Text("\(formatter.string(from: date)    )")
-                        .font(.largeTitle)
-                        .bold()
                     Spacer()
+                    Button(action: handleEdit) {
+                        Image(systemName: "pencil")
+                        Text("Edit")
+                    }
                 }
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 5)
-                        .fill(Color(red: 0, green: 0, blue: 0, opacity: 0.05))
-                )
+                Spacer()
+                Text("☀️ \(formatter.string(from: date))")
+                    .font(.largeTitle)
+                    .bold()
+                    .padding(.bottom)
+                Text("You're alarm is set. Here's to a great day")
+                    .font(.headline)
+                    .padding(.bottom)
                 Spacer()
             }
         )
@@ -80,7 +83,10 @@ struct HomeView : View {
 
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
-        HomeView(wakeyAlarm: WakeyAlarm(hour: 17, minute: 55))
+        HomeView(
+            wakeyAlarm: WakeyAlarm(hour: 17, minute: 55),
+            handleEdit: { }
+        )
             .padding()
     }
 }
