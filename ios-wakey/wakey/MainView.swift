@@ -128,18 +128,21 @@ struct MainView : View {
         // Considering refactoring this once we get to the "HomeView"
         guard let alarm = loggedInUser.alarm else {
             return AnyView(
-                AlarmEditor(
-                    seedWakeyAlarm: nil,
-                    handleSave: { alarm in self.handleSaveAlarm(alarm) }
+                CreateAlarm(
+                    handleSave: self.handleSaveAlarm
                 ).padding()
             )
         }
         if isEditingAlarm {
             return AnyView(
-                AlarmEditor(
+                EditAlarm(
                     seedWakeyAlarm: alarm,
                     handleSave: {
                         self.handleSaveAlarm($0)
+                        self.isEditingAlarm = false
+                        
+                    },
+                    handleCancel: {
                         self.isEditingAlarm = false
                     }
                 )
