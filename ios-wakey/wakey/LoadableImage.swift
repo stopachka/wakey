@@ -47,11 +47,10 @@ struct LoadableImage_Previews: PreviewProvider {
         Group {
             LoadableImage(uiImage: nil)
                 .frame(width: 100, height: 100, alignment: .center)
-                .previewDisplayName("Loading")
+                .previewDisplayName("No Image")
             LoadableImage(uiImage: UIImage(systemName: "photo"))
                 .frame(width: 100, height: 100, alignment: .center)
-                .previewDisplayName("Loaded")
-
+                .previewDisplayName("With Image")
         }
     }
 }
