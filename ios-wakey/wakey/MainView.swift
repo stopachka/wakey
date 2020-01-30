@@ -72,7 +72,7 @@ enum WakeyTab {
 }
 
 // TODO(stopachka)
-// Consider moving out much of the view component shere into their own files
+// Consider moving out much of the view components here into their own files
 struct MainView : View {
     var isLoggingIn: Bool
     var isLoadingUserInfo: Bool

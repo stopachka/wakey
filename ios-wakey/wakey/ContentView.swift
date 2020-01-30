@@ -56,17 +56,17 @@ func documentToUser(document : DocumentSnapshot) -> User {
 //----
 // DB Helpers
 
-func updateUserInfo(user : User) {
+func saveFireUserInfo(uid: String, displayName: String?, photoURL: URL?) {
     let db = Firestore.firestore()
-    db.collection("userInfos").document(user.uid).setData([
-        "uid": user.uid,
-        "displayName": user.displayName as Any,
-        "photoURL": user.photoURL?.absoluteString as Any
+    db.collection("userInfos").document(uid).setData([
+        "uid": uid,
+        "displayName": displayName as Any,
+        "photoURL": photoURL?.absoluteString as Any
     ], merge: true)
-    print("Saved \(user.uid) to db")
+    print("Saved \(uid) to db")
 }
 
-func saveAlarmToDB(loggedInUserUID: String, alarm: WakeyAlarm) {
+func saveAlarm(loggedInUserUID: String, alarm: WakeyAlarm) {
     let db = Firestore.firestore()
     db.collection("userInfos").document(loggedInUserUID).setData([
         "alarm": [
@@ -99,16 +99,12 @@ struct ContentView : View {
                 self.isLoggingIn = false
                 return
             }
-            let user = User(
-                uid: fireUser.uid,
-                photoURL: fireUser.photoURL,
-                displayName: fireUser.displayName
-            )
-            self.loggedInUserUID = user.uid
+            let uid = fireUser.uid
+            self.loggedInUserUID = uid
             self.isLoggingIn = false
             
             // Make sure that this user is _also_ stored in `userInfo`
-            updateUserInfo(user: user)
+            saveFireUserInfo(uid: uid, displayName: fireUser.displayName, photoURL: fireUser.photoURL)
         }
         
         /**
@@ -148,7 +144,7 @@ struct ContentView : View {
     }
     
     func handleSaveAlarm(alarm: WakeyAlarm) {
-        saveAlarmToDB(
+        saveAlarm(
             // TODO(stopachka)
             // Unhappy that I have to force the uid here
             // Could have handleSaveAlarm pass it in, but that feels more off
