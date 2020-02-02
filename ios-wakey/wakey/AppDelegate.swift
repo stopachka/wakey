@@ -1,19 +1,11 @@
 import UIKit
 import Firebase
 import FBSDKLoginKit
-import UserNotifications
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         FirebaseApp.configure()
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
-            if success {
-                print("All set!")
-            } else if let error = error {
-                print(error.localizedDescription)
-            }
-        }
         return ApplicationDelegate.shared.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
     
@@ -22,17 +14,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func applicationWillTerminate(_ application: UIApplication) {
-        let content = UNMutableNotificationContent()
-        content.body = "For Wakey to work in silent mode, you need to keep it in the background"
-        content.sound = UNNotificationSound.default
-
-        // show this notification five seconds from now
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 3, repeats: false)
-        // choose a random identifier
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-
-        // add our notification request
-        UNUserNotificationCenter.current().add(request)
     }
     
     // MARK: UISceneSession Lifecycle

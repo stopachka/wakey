@@ -4,6 +4,56 @@
 import SwiftUI
 import FBSDKLoginKit
 
+struct NotificationRequestAuthView : View {
+    var handleRequestNotificationAuth: () -> Void
+    var body : some View {
+        VStack {
+            Text("⏰ Notifications")
+                .font(.largeTitle)
+                .padding(.bottom)
+            Text("For Wakey to work, we need to enable notifications")
+                .padding(.bottom)
+            Text("Click 👇 this button to do that")
+                .padding(.bottom)
+            Button(action: handleRequestNotificationAuth) {
+                Text("Enable Notifications")
+                    .font(.headline)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .padding()
+            }
+            
+        }
+    }
+}
+
+struct NotificationAuthDeniedView : View {
+    func handleOpenSettings() {
+        UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!, options: [:], completionHandler: nil)
+    }
+    
+    var body : some View {
+        VStack {
+            Text("😅 Enable notifications")
+                .font(.largeTitle)
+                .padding(.bottom)
+            Text("For Wakey to work, you need to enable Alerts and Sounds")
+                .padding(.bottom)
+            Text("Open your settings 👇 to do that")
+                .padding(.bottom)
+            Button(action: handleOpenSettings) {
+                Text("Open Settings")
+                    .font(.headline)
+                    .padding()
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .padding()
+            }
+        }
+    }
+}
+
 struct ErrorScreen : View {
     var error : String
     var body : some View {
@@ -75,11 +125,12 @@ enum WakeyTab {
 // Consider moving out much of the view components here into their own files
 struct MainView : View {
     var isLoggingIn: Bool
-    var isLoadingUserInfo: Bool
+    var authorizationStatus: UNAuthorizationStatus?
     var loggedInUserUID: String?
     var allUsers: [User]
     var error : String?
     var handleError : (String) -> Void
+    var handleRequestNotificationAuth : () -> Void
     var handleSignInWithFacebook : (AccessToken) -> Void
     var handleSignOut : () -> Void
     var handleSaveAlarm : (WakeyAlarm) -> Void
@@ -88,9 +139,23 @@ struct MainView : View {
     @State var activeTab : WakeyTab = .Home
     
     var body: some View {
+        /**
+         TODO(stopachka)
+         This view has a _lot_ of logic
+         Some are warranted
+            i.e we _must_ be logged in to show anything
+         but some may be better respresented as "routes"
+         Considering solutions to refactoring this at some point
+         **/
+        /**
+         Exit early and show an error if we have it
+         */
         if let error = error {
             return AnyView(ErrorScreen(error: error))
         }
+        /**
+         Make sure we've logged in
+        */
         if isLoggingIn {
             return AnyView(LoadingScreen(description: "Logging in..."))
         }
@@ -103,30 +168,50 @@ struct MainView : View {
                 )
             )
         }
-        if isLoadingUserInfo {
-            return AnyView(LoadingScreen(description: "Grabbing your info..."))
+        /**
+         Make sure notification settings are enabled
+        */
+        guard let authorizationStatus = authorizationStatus else {
+            return AnyView(
+                LoadingScreen(description: "Finding notification settings")
+            )
         }
+        if authorizationStatus == .notDetermined {
+            return AnyView(
+                NotificationRequestAuthView(
+                    handleRequestNotificationAuth: handleRequestNotificationAuth
+                ).padding()
+            )
+        }
+        if authorizationStatus != .authorized {
+            return AnyView(
+                NotificationAuthDeniedView().padding()
+            )
+        }
+        /**
+         Make sure we've fetched user info
+        */
         let (potentialLoggedInUser, friends) = splitIntoLoggedInUserAndFriends(
             allUsers: allUsers,
             loggedInUserUID: loggedInUserUID
         )
         guard let loggedInUser = potentialLoggedInUser else {
-            // TODO(stopachka)
-            // This could happen in the following scenario:
-                // User just signs up
-                // We haven't written to the "userInfos" table yet
-                // For some split second, we would have the user hit a loading state
-            // We may want to do better here.
-            // One idea could be to track the "saving user" state, or something like that
-            // Another could be to do a separate call to fetch the "loggedInUser", and provide that from the top level
+            /**
+             TODO(stopachka)
+             This could happen in the following scenario:
+                User just signs up
+                We haven't connected tothe userInfos table yet, or
+                We haven't written the new user to the "userInfos" table yet
+             We may want to do better here.
+             One idea could be to track the "saving user" state, or something like that
+             Another could be to do a separate call to fetch the "loggedInUser",
+             and provide that from the top level
+            */
             return AnyView(LoadingScreen(description: "Grabbing your info..."))
         }
-        // TODO(stopachka)
-        // This view has a _lot_ of logic
-        // Some are intrinsic to figuring _everything_ out.
-        // i.e we _must_ be logged in to show anything
-        // but some may be better respresented as "routes"
-        // Considering refactoring this once we get to the "HomeView"
+        /**
+         Create an alarm if we don't have it
+        */
         guard let alarm = loggedInUser.alarm else {
             return AnyView(
                 CreateAlarm(
@@ -134,6 +219,9 @@ struct MainView : View {
                 ).padding()
             )
         }
+        /**
+         Show the editing alarm view if that's the case
+        */
         if isEditingAlarm {
             return AnyView(
                 EditAlarm(
@@ -149,6 +237,9 @@ struct MainView : View {
                 ).padding()
             )
         }
+        /**
+         Show the tab view otherwise
+        */
         return AnyView(
             TabView(selection: $activeTab) {
                 HomeView(
@@ -194,72 +285,101 @@ struct MainView_Previews: PreviewProvider {
         Group {
             MainView(
                 isLoggingIn: true,
-                isLoadingUserInfo: true,
+                authorizationStatus: nil,
                 loggedInUserUID: nil,
                 allUsers: [],
                 error: nil,
                 handleError: { _ in },
+                handleRequestNotificationAuth: {},
                 handleSignInWithFacebook: { _ in },
                 handleSignOut: { },
                 handleSaveAlarm: { _ in }
             ).previewDisplayName("Logging In")
             MainView(
                 isLoggingIn: true,
-                isLoadingUserInfo: true,
+                authorizationStatus: nil,
                 loggedInUserUID: nil,
                 allUsers: [],
                 error: "This is an example error message",
                 handleError: { _ in },
+                handleRequestNotificationAuth: {},
                 handleSignInWithFacebook: { _ in },
                 handleSignOut: { },
                 handleSaveAlarm: { _ in }
             ).previewDisplayName("Error")
             MainView(
                 isLoggingIn: false,
-                isLoadingUserInfo: true,
+                authorizationStatus: nil,
                 loggedInUserUID: nil,
                 allUsers: [],
                 handleError: { _ in },
+                handleRequestNotificationAuth: {},
                 handleSignInWithFacebook: { _ in },
                 handleSignOut: { },
                 handleSaveAlarm: { _ in }
             ).previewDisplayName("Sign In")
             MainView(
                 isLoggingIn: false,
-                isLoadingUserInfo: true,
+                authorizationStatus: .notDetermined,
                 loggedInUserUID: TestUtils.joe.uid,
                 allUsers: [],
                 handleError: { _ in },
+                handleRequestNotificationAuth: {},
+                handleSignInWithFacebook: { _ in },
+                handleSignOut: { },
+                handleSaveAlarm: { _ in }
+            ).previewDisplayName("Enable Notifications")
+            MainView(
+                isLoggingIn: false,
+                authorizationStatus: .denied,
+                loggedInUserUID: TestUtils.joe.uid,
+                allUsers: [],
+                handleError: { _ in },
+                handleRequestNotificationAuth: {},
+                handleSignInWithFacebook: { _ in },
+                handleSignOut: { },
+                handleSaveAlarm: { _ in }
+            ).previewDisplayName("Denied Notifications")
+            MainView(
+                isLoggingIn: false,
+                authorizationStatus: .authorized,
+                loggedInUserUID: TestUtils.joe.uid,
+                allUsers: [],
+                handleError: { _ in },
+                handleRequestNotificationAuth: {},
                 handleSignInWithFacebook: { _ in },
                 handleSignOut: { },
                 handleSaveAlarm: { _ in }
             ).previewDisplayName("Loading allUsers")
             MainView(
                 isLoggingIn: false,
-                isLoadingUserInfo: false,
+                authorizationStatus: .authorized,
                 loggedInUserUID: TestUtils.joe.uid,
                 allUsers: [TestUtils.stopa, TestUtils.joe],
                 handleError: { _ in },
+                handleRequestNotificationAuth: {},
                 handleSignInWithFacebook: { _ in },
                 handleSignOut: { },
                 handleSaveAlarm: { _ in }
             ).previewDisplayName("No Alarm Set")
             MainView(
                 isLoggingIn: false,
-                isLoadingUserInfo: false,
+                authorizationStatus: .authorized,
                 loggedInUserUID: TestUtils.joe.uid,
                 allUsers: [TestUtils.stopa, TestUtils.joeWith8AMAlarm],
                 handleError: { _ in },
+                handleRequestNotificationAuth: {},
                 handleSignInWithFacebook: { _ in },
                 handleSignOut: { },
                 handleSaveAlarm: { _ in }
             ).previewDisplayName("With Alarm")
             MainView(
                 isLoggingIn: false,
-                isLoadingUserInfo: false,
+                authorizationStatus: .authorized,
                 loggedInUserUID: TestUtils.joe.uid,
                 allUsers: [TestUtils.stopa, TestUtils.joeWith8AMAlarm],
                 handleError: { _ in },
+                handleRequestNotificationAuth: {},
                 handleSignInWithFacebook: { _ in },
                 handleSignOut: { },
                 handleSaveAlarm: { _ in },
