@@ -1,6 +1,7 @@
 import SwiftUI
 import Firebase
 import FBSDKLoginKit
+import UserNotifications
 
 //----
 // Data
@@ -82,7 +83,7 @@ func saveAlarm(loggedInUserUID: String, alarm: WakeyAlarm) {
 
 struct ContentView : View {
     @State var isLoggingIn : Bool = true
-    @State var isLoadingUserInfo : Bool = true
+    @State var authorizationStatus : UNAuthorizationStatus?
     @State var error : String?
     @State var loggedInUserUID : String?
     @State var allUsers : [User] = []
@@ -120,7 +121,30 @@ struct ContentView : View {
                 }
                 let users = collection.documents.map(documentToUser)
                 self.allUsers = users
-                self.isLoadingUserInfo = false
+        }
+        /**
+        TODO(stopachka)
+        It would be best to "subscribe" to changes to this. Need to figure out how to do that
+        */
+        getAuthorizationStatus()
+        
+    }
+    
+    func getAuthorizationStatus() {
+        UNUserNotificationCenter.current().getNotificationSettings(completionHandler: { settings in
+            /**
+             This is the top-level status.
+             In the future, we can store more granular info, like "alert", "sound", settings etc
+             This will be useful in dealing with a situation like:
+                The user manually disabled sound or something
+             */
+            self.authorizationStatus = settings.authorizationStatus
+        })
+    }
+    
+    func handleRequestNotificationAuth() {
+        UNUserNotificationCenter.current()
+            .requestAuthorization(options: [.alert, .sound]) { _,_ in self.getAuthorizationStatus()
         }
     }
     
@@ -156,11 +180,12 @@ struct ContentView : View {
     var body: some View {
         return MainView(
             isLoggingIn: isLoggingIn,
-            isLoadingUserInfo: isLoadingUserInfo,
+            authorizationStatus: authorizationStatus,
             loggedInUserUID: loggedInUserUID,
             allUsers: allUsers,
             error: error,
             handleError: { err in self.error = err },
+            handleRequestNotificationAuth: self.handleRequestNotificationAuth,
             handleSignInWithFacebook: { self.handleSignInWithFacebook(accessToken: $0) },
             handleSignOut: handleSignOut,
             handleSaveAlarm: { self.handleSaveAlarm(alarm: $0) }
