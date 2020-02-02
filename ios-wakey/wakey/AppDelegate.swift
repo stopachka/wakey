@@ -13,9 +13,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return ApplicationDelegate.shared.application(application, open: url, options: options)
     }
     
-    func applicationWillTerminate(_ application: UIApplication) {
-    }
-    
     // MARK: UISceneSession Lifecycle
 
     func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {

@@ -1,5 +1,4 @@
 import Foundation
-import UserNotifications
 
 struct TestUtils {
     static let joe = User(
