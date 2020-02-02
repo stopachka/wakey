@@ -122,10 +122,6 @@ struct ContentView : View {
                 let users = collection.documents.map(documentToUser)
                 self.allUsers = users
         }
-        /**
-        TODO(stopachka)
-        It would be best to "subscribe" to changes to this. Need to figure out how to do that
-        */
         getAuthorizationStatus()
         
     }
@@ -189,7 +185,14 @@ struct ContentView : View {
             handleSignInWithFacebook: { self.handleSignInWithFacebook(accessToken: $0) },
             handleSignOut: handleSignOut,
             handleSaveAlarm: { self.handleSaveAlarm(alarm: $0) }
-        ).onAppear(perform: connect)
+        )
+            .onAppear(perform: connect)
+            .onReceive(
+                NotificationCenter.default.publisher(
+                    for: UIApplication.willEnterForegroundNotification
+                ),
+                perform: { _ in self.getAuthorizationStatus() }
+            )
     }
 }
 
