@@ -84,28 +84,6 @@ struct LoadingScreen : View {
     }
 }
 
-struct LoginScreen : View {
-    var handleError : (String) -> Void
-    var handleSignInWithFacebook : (AccessToken) -> Void
-    var handleSignOut : () -> Void
-    var body : some View {
-        VStack {
-            Text("🎉 Welcome to Wakey")
-                .font(.largeTitle)
-                .padding(.bottom)
-            Text("Log in with Facebook to get started")
-                .font(.headline)
-                .padding(.bottom)
-            FBLoginContainer(
-                handleError: handleError,
-                handleSignIn: handleSignInWithFacebook,
-                handleSignOut: handleSignOut
-            )
-                .frame(width: 0, height: 40, alignment: .center)
-        }
-    }
-}
-
 func splitIntoLoggedInUserAndFriends(allUsers: [User], loggedInUserUID: String) -> (User?, [User]) {
     let friends = allUsers.filter { user in
         user.uid != loggedInUserUID
