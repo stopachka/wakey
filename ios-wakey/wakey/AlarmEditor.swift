@@ -32,6 +32,7 @@ struct AlarmActionButton : View {
         }
     }
 }
+
 struct CreateAlarm : View {
     var handleSave : (WakeyAlarm) -> Void
     @State var wakeyAlarm : WakeyAlarm = WakeyAlarm(hour: 7, minute: 30)
@@ -66,7 +67,6 @@ struct EditAlarm : View {
         let alarmBinding = Binding(
             get: {
                 return self.editingWakeyAlarm ?? self.seedWakeyAlarm
-                
             },
             set: {
                 self.editingWakeyAlarm = $0
@@ -104,8 +104,7 @@ struct AlarmEditor_Previews: PreviewProvider {
         Group {
             CreateAlarm(
                 handleSave: { _ in }
-            )
-            .padding().previewDisplayName("Create Alarm")
+            ).padding().previewDisplayName("Create Alarm")
             EditAlarm(
                 seedWakeyAlarm: WakeyAlarm(hour: 7, minute: 0),
                 handleSave: { _ in },

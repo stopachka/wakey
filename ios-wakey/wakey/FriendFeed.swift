@@ -79,7 +79,6 @@ struct FriendFeed : View {
                 ) { user in
                     FeedItem(user: user).padding(.bottom)
                 }
-                Spacer()
             }
         }
     }
