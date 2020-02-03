@@ -1,11 +1,12 @@
-/*
- Wraps FB's FBLoginButton into a `UIViewRepresentable`.
- This lets us embed this into SwiftUI components
- Also handles the glue into Firebase
- */
-
 import SwiftUI
 import FBSDKLoginKit
+
+
+/*
+Wraps FB's FBLoginButton into a `UIViewRepresentable`.
+This lets us embed this into SwiftUI components
+Also handles the glue into Firebase
+*/
 
 class FBLoginButtonCoordinator : NSObject, LoginButtonDelegate {
     var handleError : (String) -> Void
@@ -67,15 +68,33 @@ struct FBLoginContainer: UIViewRepresentable {
     func updateUIView(_ uiView: FBLoginButton, context: UIViewRepresentableContext<FBLoginContainer>) {}
 }
 
-struct FBLoginContainer_Previews: PreviewProvider {
-    static var previews: some View {
+struct LoginScreen : View {
+    var handleError : (String) -> Void
+    var handleSignInWithFacebook : (AccessToken) -> Void
+    var handleSignOut : () -> Void
+    var body : some View {
         VStack {
-            Text("Log In")
+            Text("🎉 Welcome to Wakey")
+                .font(.largeTitle)
+                .padding(.bottom)
+            Text("Log in with Facebook to get started")
+                .font(.headline)
+                .padding(.bottom)
             FBLoginContainer(
-                handleError: { _ in },
-                handleSignIn: { _ in },
-                handleSignOut: {}
-            ).frame(width: 0, height: 50, alignment: .center).padding()
+                handleError: handleError,
+                handleSignIn: handleSignInWithFacebook,
+                handleSignOut: handleSignOut
+            ).frame(width: 0, height: 40, alignment: .center)
         }
+    }
+}
+
+struct LoginScreen_Previews: PreviewProvider {
+    static var previews: some View {
+        LoginScreen(
+            handleError: { _ in },
+            handleSignInWithFacebook: { _ in },
+            handleSignOut: {}
+        )
     }
 }
