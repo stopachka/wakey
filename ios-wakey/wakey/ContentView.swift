@@ -47,7 +47,7 @@ func coerceToURL(input : Any?) -> URL? {
 // How will we parse more complicated structures?
 func documentToUser(document : DocumentSnapshot) -> User {
     return User(
-        uid: document["uid"] as? String ?? "foo",
+        uid: document["uid"] as! String,
         photoURL: coerceToURL(input: document["photoURL"]),
         displayName: document["displayName"] as? String,
         alarm: coerceToWakeyAlarm(input: document["alarm"])
@@ -147,8 +147,7 @@ struct ContentView : View {
     func handleSignInWithFacebook(accessToken: AccessToken) {
         let credential = FacebookAuthProvider.credential(withAccessToken: accessToken.tokenString)
         self.isLoggingIn = true
-        // Auth.auth().signIn will trigger
-        // Auth.auth().addStateDidChangeListener
+        // Auth.auth().signIn will trigger Auth.auth().addStateDidChangeListener
         // which will then turn isLoggingIn to false
         Auth.auth().signIn(with: credential)
     }
