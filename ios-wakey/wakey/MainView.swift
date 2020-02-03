@@ -363,6 +363,18 @@ struct MainView_Previews: PreviewProvider {
                 handleSaveAlarm: { _ in },
                 isEditingAlarm: true
             ).previewDisplayName("Editing Alarm")
+            MainView(
+                isLoggingIn: false,
+                authorizationStatus: .authorized,
+                loggedInUserUID: TestUtils.joe.uid,
+                allUsers: [TestUtils.stopa, TestUtils.joeWith8AMAlarm],
+                handleError: { _ in },
+                handleRequestNotificationAuth: {},
+                handleSignInWithFacebook: { _ in },
+                handleSignOut: { },
+                handleSaveAlarm: { _ in },
+                activeTab: .Friends
+            ).previewDisplayName("Friends Feed")
         }
     }
 }

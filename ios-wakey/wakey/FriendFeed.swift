@@ -17,7 +17,7 @@ func friendlyName(displayName: String?, defaultValue: String) -> String {
         return defaultValue
     }
     
-    let nameButLast = displayName.components(separatedBy: " ").dropLast().joined()
+    let nameButLast = displayName.components(separatedBy: " ").dropLast().joined(separator: " ")
     if nameButLast.isEmpty {
         return defaultValue
     }
@@ -89,7 +89,7 @@ struct FriendFeed_Previews: PreviewProvider {
     static var previews: some View {
         FriendFeed(
             loggedInUser: TestUtils.joeWith8AMAlarm,
-            friends: [TestUtils.stopa]
+            friends: [TestUtils.stopa, TestUtils.weirdName]
         )
     }
 }
