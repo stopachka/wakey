@@ -79,9 +79,9 @@ func saveAlarm(loggedInUserUID: String, alarm: WakeyAlarm) {
 }
 
 //----
-// ContentView
+// MainViewContainer
 
-struct ContentView : View {
+struct MainViewContainer : View {
     @State var isLoggingIn : Bool = true
     @State var authorizationStatus : UNAuthorizationStatus?
     @State var error : String?
@@ -195,8 +195,8 @@ struct ContentView : View {
     }
 }
 
-struct ContentView_Previews: PreviewProvider {
+struct MainViewContainer_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        MainViewContainer()
     }
 }
