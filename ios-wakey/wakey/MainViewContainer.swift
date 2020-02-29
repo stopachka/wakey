@@ -79,6 +79,18 @@ func saveAlarm(loggedInUserUID: String, alarm: WakeyAlarm) {
     print("Saved \(loggedInUserUID)'s alarm to db")
 }
 
+extension MPVolumeView {
+  static func setVolume(_ volume: Float) {
+    let volumeView = MPVolumeView()
+    let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider
+
+    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.01) {
+        print("setting slider", slider, volume);
+        slider?.value = volume
+    }
+  }
+}
+
 //----
 // MainViewContainer
 
@@ -160,7 +172,7 @@ struct MainViewContainer : View {
             // TODO maybe move these into one function
             self.sendAlarmNotification(triggerTimeInterval: ALARM_NOTIFICATION_DELAY_SECS)
             Timer.scheduledTimer(withTimeInterval: ALARM_SOUND_DELAY_SECS, repeats: false, block: { _ in
-                self.setVolumeLevel(level: ALARM_VOLUME_LEVEL)
+                MPVolumeView.setVolume(ALARM_VOLUME_LEVEL)
                 self.playAlarmAudio()
             })
         })
@@ -234,18 +246,6 @@ struct MainViewContainer : View {
     func playAlarmAudio() {
         let path = Bundle.main.path(forResource: "tickle", ofType: "mp3")!
         playPath(path: path)
-        audioPlayer!.volume = 1.0
-    }
-    
-    func setVolumeLevel(level: Float) {
-        // TODO(stopachka)
-        // Perhaps consider "resetting" to the old audio level too
-//        let volumeSlider = (
-//            MPVolumeView()
-//                .subviews
-//                .filter { NSStringFromClass($0.classForCoder) == "MPVolumeSlider"}
-//                .first
-//        )  as! UISlider
     }
     
     func sendAlarmNotification(triggerTimeInterval: Double) {
