@@ -87,21 +87,15 @@ struct ForceVolume: UIViewRepresentable {
         let volumeView = MPVolumeView(frame: frame)
         volumeView.sizeToFit()
         volumeView.alpha = 0.000001
-        
-        // We only set volume when the View is instantiated
-        // This is because we depend on the caller to remove us from the view as soon as the command is set
-        // Otherwise this view will make the user's system volume slider disappear
-        // TODO(stopachka)
-        // Maybe we can do this a lot better
-        // Ideally this would listen to "commands"
-        // Then instantiate the view quetly, run it, and tear it down again
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: false, block: { _ in
-            self.setVolume(view: volumeView, level: self.level)
-        })
+    
         return volumeView
     }
 
-    func updateUIView(_ view: MPVolumeView, context: Context) {}
+    func updateUIView(_ view: MPVolumeView, context: Context) {
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: false, block: { _ in
+            self.setVolume(view: view, level: self.level)
+        })
+    }
     
     func setVolume(view: MPVolumeView, level: Float) {
         let volumeSlider = (
