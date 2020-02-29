@@ -135,7 +135,7 @@ struct MainViewContainer : View {
          */
         configureAVAudioSession()
         
-        let handledWakeupDates : Set<String> = []
+        var handledWakeupDates : Set<String> = []
         self.playSilentAudio()
         Timer.scheduledTimer(withTimeInterval: 30, repeats: true, block: { _ in
             guard let wakeupDate = self.getNextWakeupDate() else {
