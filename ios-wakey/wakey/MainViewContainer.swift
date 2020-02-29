@@ -88,7 +88,6 @@ struct MainViewContainer : View {
     @State var loggedInUserUID : String?
     @State var allUsers : [User] = []
     @State var audioPlayer: AVAudioPlayer?
-    @State var handledWakeupMap: [String: Bool] = [String: Bool]()
     
     // TODO(stopachka)
     // Would be good to make sure that this only loads once
@@ -127,30 +126,35 @@ struct MainViewContainer : View {
         
         getAuthorizationStatus()
         
+        /**
+         All the work related to taking action on an alarm
+         (make sounds, vibrations, etc)
+         TODO: factor into modules
+         maybe: `AlarmActions play, silent`
+         maybe: `ScheduleWorker` (runs and checks, etc)
+         */
         configureAVAudioSession()
         
+        let handledWakeupDates : Set<String> = []
         self.playSilentAudio()
-        Timer.scheduledTimer(withTimeInterval: 5, repeats: true, block: { _ in
+        Timer.scheduledTimer(withTimeInterval: 30, repeats: true, block: { _ in
             guard let wakeupDate = self.getNextWakeupDate() else {
                 print("Could not get next wake up")
                 return
             }
-            
+            print("wakeupDate: \(wakeupDate.description)")
             if !self.inRange(wakeupDate: wakeupDate) {
                 print("wakeupDate not in range")
-                print(wakeupDate.description)
                 return
             }
             
-            if self.hasHandledWakeup(wakeupDate: wakeupDate) {
+            if handledWakeupDates.contains(wakeupDate.description) {
                 print("wakeUpDate: \(wakeupDate.description) already handled")
                 return
             }
-            
-            self.updateWakeupMap(wakeupDate: wakeupDate)
+            handledWakeupDates.insert(wakeupDate.description)
             self.playAlarmAudio()
         })
-        
     }
     
     func getAuthorizationStatus() {
@@ -184,10 +188,6 @@ struct MainViewContainer : View {
         return abs(wakeupDate.timeIntervalSinceNow) <= 30
     }
     
-    func hasHandledWakeup(wakeupDate: Date) -> Bool {
-        return self.handledWakeupMap[wakeupDate.description] ?? false
-    }
-    
     func getNextWakeupDate() -> Date? {
         guard let user = currentUser() else {
             return nil
@@ -203,12 +203,9 @@ struct MainViewContainer : View {
         return wakeyAlarmToNextDate(wakeyAlarm: wakeyAlarm, baseDate: oneMinuteAgo)
     }
     
-    func updateWakeupMap(wakeupDate: Date) {
-        self.handledWakeupMap[wakeupDate.description] = true
-    }
-    
     //----
     // Audio Helpers
+    
     func configureAVAudioSession() {
         do {
             try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
@@ -252,6 +249,7 @@ struct MainViewContainer : View {
     
     //----
     // Auth Helpers
+    
     func handleRequestNotificationAuth() {
         UNUserNotificationCenter.current()
             .requestAuthorization(options: [.alert, .badge, .sound]) { _,_ in self.getAuthorizationStatus()
