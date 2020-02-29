@@ -79,27 +79,31 @@ func saveAlarm(loggedInUserUID: String, alarm: WakeyAlarm) {
     print("Saved \(loggedInUserUID)'s alarm to db")
 }
 
-struct VolumeCommand {
-    let id : String
-    let level : Float
-}
-
-struct VolumeCommander: UIViewRepresentable {
-    var command : VolumeCommand?
+struct ForceVolume: UIViewRepresentable {
+    var level : Float
+    
     func makeUIView(context: Context) -> MPVolumeView {
-        let frame = CGRect(x: -1000, y: -1000, width: 0, height: 0)
+        let frame = CGRect(x: -120, y: -120, width: 120, height: 120)
         let volumeView = MPVolumeView(frame: frame)
         volumeView.sizeToFit()
         volumeView.alpha = 0.000001
         
+        // We only set volume when the View is instantiated
+        // This is because we depend on the caller to remove us from the view as soon as the command is set
+        // Otherwise this view will make the user's system volume slider disappear
+        // TODO(stopachka)
+        // Maybe we can do this a lot better
+        // Ideally this would listen to "commands"
+        // Then instantiate the view quetly, run it, and tear it down again
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: false, block: { _ in
+            self.setVolume(view: volumeView, level: self.level)
+        })
         return volumeView
     }
 
-    func updateUIView(_ view: MPVolumeView, context: Context) {
-        guard let command = command  else {
-            print("no command to set volume");
-            return
-        }
+    func updateUIView(_ view: MPVolumeView, context: Context) {}
+    
+    func setVolume(view: MPVolumeView, level: Float) {
         let volumeSlider = (
             view
                 .subviews
@@ -107,9 +111,12 @@ struct VolumeCommander: UIViewRepresentable {
                 .first
             ) as! UISlider
             
-        volumeSlider.setValue(command.level, animated: false)
+        volumeSlider.setValue(level, animated: false)
     }
+    
 }
+
+
 
 //----
 // MainViewContainer
@@ -121,7 +128,7 @@ struct MainViewContainer : View {
     @State var loggedInUserUID : String?
     @State var allUsers : [User] = []
     @State var audioPlayer: AVAudioPlayer?
-    @State var volumeCommand: VolumeCommand?
+    @State var volumeLevelToForce: Float?
     
     // TODO(stopachka)
     // Would be good to make sure that this only loads once
@@ -196,7 +203,7 @@ struct MainViewContainer : View {
             Timer.scheduledTimer(withTimeInterval: ALARM_SOUND_DELAY_SECS, repeats: false, block: { _ in
                 // TODO:
                 // Consider "resetting to the previous volume, once the alarm is finished
-                self.volumeCommand = VolumeCommand(id: wakeupDate.description, level: ALARM_VOLUME_LEVEL)
+                self.setVolume(level: ALARM_VOLUME_LEVEL)
                 self.playAlarmAudio()
             })
         })
@@ -272,6 +279,13 @@ struct MainViewContainer : View {
         playPath(path: path)
     }
     
+    func setVolume(level: Float) {
+        self.volumeLevelToForce = level
+        Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { _ in
+            self.volumeLevelToForce = nil
+        })
+    }
+    
     func sendAlarmNotification(triggerTimeInterval: Double) {
         let content = UNMutableNotificationContent()
         content.title = "Wakey"
@@ -340,20 +354,24 @@ struct MainViewContainer : View {
     }
     
     var body: some View {
-        VStack {
-            VolumeCommander(command: volumeCommand)
-            MainView(
-                isLoggingIn: isLoggingIn,
-                authorizationStatus: authorizationStatus,
-                loggedInUserUID: loggedInUserUID,
-                allUsers: allUsers,
-                error: error,
-                handleError: { err in self.error = err },
-                handleRequestNotificationAuth: self.handleRequestNotificationAuth,
-                handleSignInWithFacebook: { self.handleSignInWithFacebook(accessToken: $0) },
-                handleSignOut: handleSignOut,
-                handleSaveAlarm: { self.handleSaveAlarm(alarm: $0) }
-            ).frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+        GeometryReader { proxy in
+            Group {
+                if self.volumeLevelToForce != nil {
+                    ForceVolume(level: self.volumeLevelToForce!)
+                }
+                MainView(
+                    isLoggingIn: self.isLoggingIn,
+                    authorizationStatus: self.authorizationStatus,
+                    loggedInUserUID: self.loggedInUserUID,
+                    allUsers: self.allUsers,
+                    error: self.error,
+                    handleError: { err in self.error = err },
+                    handleRequestNotificationAuth: self.handleRequestNotificationAuth,
+                    handleSignInWithFacebook: { self.handleSignInWithFacebook(accessToken: $0) },
+                    handleSignOut: self.handleSignOut,
+                    handleSaveAlarm: { self.handleSaveAlarm(alarm: $0) }
+                ).frame(width: proxy.size.width, height: proxy.size.height)
+            }
         }
             .onAppear(perform: connect)
             .onReceive(
