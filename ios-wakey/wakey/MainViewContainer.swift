@@ -153,7 +153,9 @@ struct MainViewContainer : View {
                 return
             }
             handledWakeupDates.insert(wakeupDate.description)
+            // TODO maybe move these into one function
             self.playAlarmAudio()
+            self.sendAlarmNotification()
         })
     }
     
@@ -227,6 +229,16 @@ struct MainViewContainer : View {
         playPath(path: path)
     }
     
+    func sendAlarmNotification() {
+        let content = UNMutableNotificationContent()
+        content.title = "Wakey"
+        content.body = "☀️ Rise and shine. It's time to wake up :)"
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+
+        UNUserNotificationCenter.current().add(request)
+    }
+    
     func playPath(path: String) {
         if let oldAudioPlayer = self.audioPlayer {
             oldAudioPlayer.stop()
@@ -235,7 +247,6 @@ struct MainViewContainer : View {
         let url = URL(fileURLWithPath: path)
         print("In  starting to play, path: ", path)
         do {
-            print("Setting up silent")
             let newAudioPlayer = try AVAudioPlayer(contentsOf: url)
             newAudioPlayer.prepareToPlay()
             newAudioPlayer.numberOfLoops = -1
