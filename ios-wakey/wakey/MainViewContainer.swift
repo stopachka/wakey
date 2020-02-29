@@ -84,7 +84,6 @@ func saveAlarm(loggedInUserUID: String, alarm: WakeyAlarm) {
 let TRIGGER_ALARM_NOTIF_DELAY_SECS = 1.0
 let TRIGGER_SOUND_DELAY_SECS = 1.0
 let RENDER_VOLUME_PICKER_DELAY_SECS = 1.0
-let RESET_VOLUME_LEVEL_SECS = RENDER_VOLUME_PICKER_DELAY_SECS + 1.0
 
 /**
  This view, as soon as it is rendered, will force the volume to be a certain level
@@ -95,6 +94,7 @@ let RESET_VOLUME_LEVEL_SECS = RENDER_VOLUME_PICKER_DELAY_SECS + 1.0
  */
 struct ForceVolume: UIViewRepresentable {
     var level : Float
+    var handleSetVolumeLevelComplete : () -> Void
     
     func makeUIView(context: Context) -> MPVolumeView {
         let frame = CGRect(x: -120, y: -120, width: 120, height: 120)
@@ -108,6 +108,7 @@ struct ForceVolume: UIViewRepresentable {
     func updateUIView(_ view: MPVolumeView, context: Context) {
         Timer.scheduledTimer(withTimeInterval: RENDER_VOLUME_PICKER_DELAY_SECS, repeats: false, block: { _ in
             self.setVolume(view: view, level: self.level)
+            self.handleSetVolumeLevelComplete()
         })
     }
     
@@ -286,9 +287,6 @@ struct MainViewContainer : View {
     
     func setVolume(level: Float) {
         self.volumeLevelToForce = level
-        Timer.scheduledTimer(withTimeInterval: RESET_VOLUME_LEVEL_SECS, repeats: false, block: { _ in
-            self.volumeLevelToForce = nil
-        })
     }
     
     func sendAlarmNotification(triggerTimeInterval: Double) {
@@ -362,7 +360,10 @@ struct MainViewContainer : View {
         GeometryReader { proxy in
             Group {
                 if self.volumeLevelToForce != nil {
-                    ForceVolume(level: self.volumeLevelToForce!)
+                    ForceVolume(
+                        level: self.volumeLevelToForce!,
+                        handleSetVolumeLevelComplete: { self.volumeLevelToForce = nil }
+                    )
                 }
                 MainView(
                     isLoggingIn: self.isLoggingIn,
