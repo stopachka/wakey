@@ -206,10 +206,8 @@ struct MainViewContainer : View {
             handledWakeupDates.insert(wakeupDateKey)
             // TODO maybe move these into one function
             self.sendAlarmNotification(triggerTimeInterval: TRIGGER_ALARM_NOTIF_DELAY_SECS)
+            self.volumeLevelToForce = 1.0 // set volume to max in advance of playing alarm sound
             Timer.scheduledTimer(withTimeInterval: TRIGGER_SOUND_DELAY_SECS, repeats: false, block: { _ in
-                // TODO:
-                // Consider "resetting to the previous volume, once the alarm is finished
-                self.setVolume(level: 1.0)
                 self.playAlarmAudio()
             })
         })
@@ -283,10 +281,6 @@ struct MainViewContainer : View {
     func playAlarmAudio() {
         let path = Bundle.main.path(forResource: "tickle", ofType: "mp3")!
         playPath(path: path)
-    }
-    
-    func setVolume(level: Float) {
-        self.volumeLevelToForce = level
     }
     
     func sendAlarmNotification(triggerTimeInterval: Double) {
