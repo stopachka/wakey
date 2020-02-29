@@ -1,7 +1,7 @@
 import SwiftUI
 import Firebase
 import FBSDKLoginKit
-import UserNotifications
+import AVFoundation
 
 //----
 // Data
@@ -87,6 +87,8 @@ struct MainViewContainer : View {
     @State var error : String?
     @State var loggedInUserUID : String?
     @State var allUsers : [User] = []
+    @State var audioPlayer: AVAudioPlayer?
+    @State var handledWakeupMap: [String: Bool] = [String: Bool]()
     
     // TODO(stopachka)
     // Would be good to make sure that this only loads once
@@ -122,7 +124,32 @@ struct MainViewContainer : View {
                 let users = collection.documents.map(documentToUser)
                 self.allUsers = users
         }
+        
         getAuthorizationStatus()
+        
+        configureAVAudioSession()
+        
+        self.playSilentAudio()
+        Timer.scheduledTimer(withTimeInterval: 5, repeats: true, block: { _ in
+            guard let wakeupDate = self.getNextWakeupDate() else {
+                print("Could not get next wake up")
+                return
+            }
+            
+            if !self.inRange(wakeupDate: wakeupDate) {
+                print("wakeupDate not in range")
+                print(wakeupDate.description)
+                return
+            }
+            
+            if self.hasHandledWakeup(wakeupDate: wakeupDate) {
+                print("wakeUpDate: \(wakeupDate.description) already handled")
+                return
+            }
+            
+            self.updateWakeupMap(wakeupDate: wakeupDate)
+            self.playAlarmAudio()
+        })
         
     }
     
@@ -134,13 +161,100 @@ struct MainViewContainer : View {
              This will be useful in dealing with a situation like:
                 The user manually disabled sound or something
              */
+            print(settings)
             self.authorizationStatus = settings.authorizationStatus
         })
     }
     
+    // (TODO) Consider moving this into a utils file
+    func currentUser() -> User? {
+        guard let loggedInUserUID = loggedInUserUID else {
+            return nil
+        }
+        
+        let (user, _) = splitIntoLoggedInUserAndFriends(allUsers: self.allUsers, loggedInUserUID: loggedInUserUID)
+        return user
+    }
+    
+    //----
+    // Wake-up Helpers
+    
+    func inRange(wakeupDate: Date) -> Bool {
+        print("Difference in seconds \(wakeupDate.timeIntervalSinceNow.description)")
+        return abs(wakeupDate.timeIntervalSinceNow) <= 30
+    }
+    
+    func hasHandledWakeup(wakeupDate: Date) -> Bool {
+        return self.handledWakeupMap[wakeupDate.description] ?? false
+    }
+    
+    func getNextWakeupDate() -> Date? {
+        guard let user = currentUser() else {
+            return nil
+        }
+        
+        guard let wakeyAlarm = user.alarm else {
+            return nil
+        }
+        
+        let now = Date()
+        let oneMinuteAgo = Calendar.current.date(byAdding: .minute, value: -1, to: now)!
+        print("One minute ago: \(oneMinuteAgo.description)")
+        return wakeyAlarmToNextDate(wakeyAlarm: wakeyAlarm, baseDate: oneMinuteAgo)
+    }
+    
+    func updateWakeupMap(wakeupDate: Date) {
+        self.handledWakeupMap[wakeupDate.description] = true
+    }
+    
+    //----
+    // Audio Helpers
+    func configureAVAudioSession() {
+        do {
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch let error as NSError {
+            self.error = "Uh-oh. Could not set up audio player!"
+            print(error.localizedDescription)
+        }
+    }
+    
+    func playSilentAudio() {
+        let path = Bundle.main.path(forResource: "silent", ofType: "mp3")!
+        playPath(path: path)
+    }
+    
+    func playAlarmAudio() {
+        let path = Bundle.main.path(forResource: "tickle", ofType: "mp3")!
+        playPath(path: path)
+    }
+    
+    func playPath(path: String) {
+        if let oldAudioPlayer = self.audioPlayer {
+            oldAudioPlayer.stop()
+        }
+
+        let url = URL(fileURLWithPath: path)
+        print("In  starting to play, path: ", path)
+        do {
+            print("Setting up silent")
+            let newAudioPlayer = try AVAudioPlayer(contentsOf: url)
+            newAudioPlayer.prepareToPlay()
+            newAudioPlayer.numberOfLoops = -1
+            newAudioPlayer.play()
+            self.audioPlayer = newAudioPlayer
+        } catch let error as NSError {
+            // File could not load
+            self.error = "Uh-oh. Could not play sounds"
+            print(error.localizedDescription)
+        }
+    }
+    
+    //----
+    // Auth Helpers
     func handleRequestNotificationAuth() {
         UNUserNotificationCenter.current()
-            .requestAuthorization(options: [.alert, .sound]) { _,_ in self.getAuthorizationStatus()
+            .requestAuthorization(options: [.alert, .badge, .sound]) { _,_ in self.getAuthorizationStatus()
         }
     }
     

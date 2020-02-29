@@ -3,6 +3,7 @@
 
 import SwiftUI
 import FBSDKLoginKit
+import AVFoundation
 
 struct NotificationRequestAuthView : View {
     var handleRequestNotificationAuth: () -> Void

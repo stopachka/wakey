@@ -35,12 +35,12 @@ func isWakeyAlarmAheadOfDate(wakeyAlarm: WakeyAlarm, date: Date) -> Bool {
 // This _could_ error out, if for example WakeyAlarm contains an hour > 24
 // How should we best deal with this case?
 // If we make this optional, we'll effectively bleed this edge case throughout the code
-func wakeyAlarmToNextDate(wakeyAlarm: WakeyAlarm) -> Date {
-    let now = Date()
+func wakeyAlarmToNextDate(wakeyAlarm: WakeyAlarm, baseDate: Date? = nil) -> Date {
+    let baseDate = baseDate ?? Date()
     
-    let referenceDate = isWakeyAlarmAheadOfDate(wakeyAlarm: wakeyAlarm, date: now)
-        ? now.addingTimeInterval(ONE_DAY_IN_SECONDS)
-        : now
+    let referenceDate = isWakeyAlarmAheadOfDate(wakeyAlarm: wakeyAlarm, date: baseDate)
+        ? baseDate
+        : baseDate.addingTimeInterval(ONE_DAY_IN_SECONDS)
     
     return Calendar.current.date(
         bySettingHour: wakeyAlarm.hour,
