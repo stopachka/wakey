@@ -198,8 +198,9 @@ struct MainViewContainer : View {
         }
         
         let now = Date()
-        let oneMinuteAgo = Calendar.current.date(byAdding: .minute, value: -1, to: now)!
-        print("One minute ago: \(oneMinuteAgo.description)")
+        let oneMinuteAgo = Calendar.current.date(
+            byAdding: .minute, value: -1, to: now
+        )!
         return wakeyAlarmToNextDate(wakeyAlarm: wakeyAlarm, baseDate: oneMinuteAgo)
     }
     
