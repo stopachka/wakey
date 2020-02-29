@@ -79,6 +79,20 @@ func saveAlarm(loggedInUserUID: String, alarm: WakeyAlarm) {
     print("Saved \(loggedInUserUID)'s alarm to db")
 }
 
+/**
+ */
+let TRIGGER_ALARM_NOTIF_DELAY_SECS = 1.0
+let TRIGGER_SOUND_DELAY_SECS = 1.0
+let RENDER_VOLUME_PICKER_DELAY_SECS = 1.0
+let RESET_VOLUME_LEVEL_SECS = RENDER_VOLUME_PICKER_DELAY_SECS + 1.0
+
+/**
+ This view, as soon as it is rendered, will force the volume to be a certain level
+ 
+ #As long as this view is rendered, the user's system volume bar will not work!
+ 
+ You must remove it after, but you have to give it at least 1 second to work
+ */
 struct ForceVolume: UIViewRepresentable {
     var level : Float
     
@@ -92,7 +106,7 @@ struct ForceVolume: UIViewRepresentable {
     }
 
     func updateUIView(_ view: MPVolumeView, context: Context) {
-        Timer.scheduledTimer(withTimeInterval: 1, repeats: false, block: { _ in
+        Timer.scheduledTimer(withTimeInterval: RENDER_VOLUME_PICKER_DELAY_SECS, repeats: false, block: { _ in
             self.setVolume(view: view, level: self.level)
         })
     }
@@ -172,9 +186,6 @@ struct MainViewContainer : View {
         
         var handledWakeupDates : Set<String> = []
         self.playSilentAudio()
-        let ALARM_NOTIFICATION_DELAY_SECS = 1.0
-        let ALARM_SOUND_DELAY_SECS = 1.0
-        let ALARM_VOLUME_LEVEL : Float = 1.0
         Timer.scheduledTimer(withTimeInterval: 5, repeats: true, block: { _ in
             guard let wakeupDate = self.getNextWakeupDate() else {
                 print("Could not get next wake up")
@@ -193,11 +204,11 @@ struct MainViewContainer : View {
             }
             handledWakeupDates.insert(wakeupDateKey)
             // TODO maybe move these into one function
-            self.sendAlarmNotification(triggerTimeInterval: ALARM_NOTIFICATION_DELAY_SECS)
-            Timer.scheduledTimer(withTimeInterval: ALARM_SOUND_DELAY_SECS, repeats: false, block: { _ in
+            self.sendAlarmNotification(triggerTimeInterval: TRIGGER_ALARM_NOTIF_DELAY_SECS)
+            Timer.scheduledTimer(withTimeInterval: TRIGGER_SOUND_DELAY_SECS, repeats: false, block: { _ in
                 // TODO:
                 // Consider "resetting to the previous volume, once the alarm is finished
-                self.setVolume(level: ALARM_VOLUME_LEVEL)
+                self.setVolume(level: 1.0)
                 self.playAlarmAudio()
             })
         })
@@ -275,7 +286,7 @@ struct MainViewContainer : View {
     
     func setVolume(level: Float) {
         self.volumeLevelToForce = level
-        Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { _ in
+        Timer.scheduledTimer(withTimeInterval: RESET_VOLUME_LEVEL_SECS, repeats: false, block: { _ in
             self.volumeLevelToForce = nil
         })
     }
