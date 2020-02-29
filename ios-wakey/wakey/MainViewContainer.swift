@@ -79,16 +79,36 @@ func saveAlarm(loggedInUserUID: String, alarm: WakeyAlarm) {
     print("Saved \(loggedInUserUID)'s alarm to db")
 }
 
-extension MPVolumeView {
-  static func setVolume(_ volume: Float) {
-    let volumeView = MPVolumeView()
-    let slider = volumeView.subviews.first(where: { $0 is UISlider }) as? UISlider
+struct VolumeCommand {
+    let id : String
+    let level : Float
+}
 
-    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.01) {
-        print("setting slider", slider, volume);
-        slider?.value = volume
+struct VolumeCommander: UIViewRepresentable {
+    var command : VolumeCommand?
+    func makeUIView(context: Context) -> MPVolumeView {
+        let frame = CGRect(x: -1000, y: -1000, width: 0, height: 0)
+        let volumeView = MPVolumeView(frame: frame)
+        volumeView.sizeToFit()
+        volumeView.alpha = 0.000001
+        
+        return volumeView
     }
-  }
+
+    func updateUIView(_ view: MPVolumeView, context: Context) {
+        guard let command = command  else {
+            print("no command to set volume");
+            return
+        }
+        let volumeSlider = (
+            view
+                .subviews
+                .filter { NSStringFromClass($0.classForCoder) == "MPVolumeSlider"}
+                .first
+            ) as! UISlider
+            
+        volumeSlider.setValue(command.level, animated: false)
+    }
 }
 
 //----
@@ -101,6 +121,7 @@ struct MainViewContainer : View {
     @State var loggedInUserUID : String?
     @State var allUsers : [User] = []
     @State var audioPlayer: AVAudioPlayer?
+    @State var volumeCommand: VolumeCommand?
     
     // TODO(stopachka)
     // Would be good to make sure that this only loads once
@@ -158,23 +179,24 @@ struct MainViewContainer : View {
                 print("Could not get next wake up")
                 return
             }
-            print("wakeupDate: \(wakeupDate.description)")
+            let wakeupDateKey = wakeupDate.description
+            print("wakeupDateKey: \(wakeupDateKey)")
             if !self.inRange(wakeupDate: wakeupDate) {
                 print("wakeupDate not in range")
                 return
             }
             
-            if handledWakeupDates.contains(wakeupDate.description) {
-                print("wakeUpDate: \(wakeupDate.description) already handled")
+            if handledWakeupDates.contains(wakeupDateKey) {
+                print("wakeUpDateKey: \(wakeupDateKey) already handled")
                 return
             }
-            handledWakeupDates.insert(wakeupDate.description)
+            handledWakeupDates.insert(wakeupDateKey)
             // TODO maybe move these into one function
             self.sendAlarmNotification(triggerTimeInterval: ALARM_NOTIFICATION_DELAY_SECS)
             Timer.scheduledTimer(withTimeInterval: ALARM_SOUND_DELAY_SECS, repeats: false, block: { _ in
                 // TODO:
                 // Consider "resetting to the previous volume, once the alarm is finished
-                MPVolumeView.setVolume(ALARM_VOLUME_LEVEL)
+                self.volumeCommand = VolumeCommand(id: wakeupDate.description, level: ALARM_VOLUME_LEVEL)
                 self.playAlarmAudio()
             })
         })
@@ -318,18 +340,21 @@ struct MainViewContainer : View {
     }
     
     var body: some View {
-        return MainView(
-            isLoggingIn: isLoggingIn,
-            authorizationStatus: authorizationStatus,
-            loggedInUserUID: loggedInUserUID,
-            allUsers: allUsers,
-            error: error,
-            handleError: { err in self.error = err },
-            handleRequestNotificationAuth: self.handleRequestNotificationAuth,
-            handleSignInWithFacebook: { self.handleSignInWithFacebook(accessToken: $0) },
-            handleSignOut: handleSignOut,
-            handleSaveAlarm: { self.handleSaveAlarm(alarm: $0) }
-        )
+        VStack {
+            VolumeCommander(command: volumeCommand)
+            MainView(
+                isLoggingIn: isLoggingIn,
+                authorizationStatus: authorizationStatus,
+                loggedInUserUID: loggedInUserUID,
+                allUsers: allUsers,
+                error: error,
+                handleError: { err in self.error = err },
+                handleRequestNotificationAuth: self.handleRequestNotificationAuth,
+                handleSignInWithFacebook: { self.handleSignInWithFacebook(accessToken: $0) },
+                handleSignOut: handleSignOut,
+                handleSaveAlarm: { self.handleSaveAlarm(alarm: $0) }
+            ).frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+        }
             .onAppear(perform: connect)
             .onReceive(
                 NotificationCenter.default.publisher(
