@@ -172,6 +172,8 @@ struct MainViewContainer : View {
             // TODO maybe move these into one function
             self.sendAlarmNotification(triggerTimeInterval: ALARM_NOTIFICATION_DELAY_SECS)
             Timer.scheduledTimer(withTimeInterval: ALARM_SOUND_DELAY_SECS, repeats: false, block: { _ in
+                // TODO:
+                // Consider "resetting to the previous volume, once the alarm is finished
                 MPVolumeView.setVolume(ALARM_VOLUME_LEVEL)
                 self.playAlarmAudio()
             })
