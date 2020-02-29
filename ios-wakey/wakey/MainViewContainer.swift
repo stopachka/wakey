@@ -2,6 +2,7 @@ import SwiftUI
 import Firebase
 import FBSDKLoginKit
 import AVFoundation
+import MediaPlayer
 
 //----
 // Data
@@ -137,7 +138,10 @@ struct MainViewContainer : View {
         
         var handledWakeupDates : Set<String> = []
         self.playSilentAudio()
-        Timer.scheduledTimer(withTimeInterval: 30, repeats: true, block: { _ in
+        let ALARM_NOTIFICATION_DELAY_SECS = 1.0
+        let ALARM_SOUND_DELAY_SECS = 1.0
+        let ALARM_VOLUME_LEVEL : Float = 1.0
+        Timer.scheduledTimer(withTimeInterval: 5, repeats: true, block: { _ in
             guard let wakeupDate = self.getNextWakeupDate() else {
                 print("Could not get next wake up")
                 return
@@ -154,8 +158,11 @@ struct MainViewContainer : View {
             }
             handledWakeupDates.insert(wakeupDate.description)
             // TODO maybe move these into one function
-            self.playAlarmAudio()
-            self.sendAlarmNotification()
+            self.sendAlarmNotification(triggerTimeInterval: ALARM_NOTIFICATION_DELAY_SECS)
+            Timer.scheduledTimer(withTimeInterval: ALARM_SOUND_DELAY_SECS, repeats: false, block: { _ in
+                self.setVolumeLevel(level: ALARM_VOLUME_LEVEL)
+                self.playAlarmAudio()
+            })
         })
     }
     
@@ -227,13 +234,25 @@ struct MainViewContainer : View {
     func playAlarmAudio() {
         let path = Bundle.main.path(forResource: "tickle", ofType: "mp3")!
         playPath(path: path)
+        audioPlayer!.volume = 1.0
     }
     
-    func sendAlarmNotification() {
+    func setVolumeLevel(level: Float) {
+        // TODO(stopachka)
+        // Perhaps consider "resetting" to the old audio level too
+//        let volumeSlider = (
+//            MPVolumeView()
+//                .subviews
+//                .filter { NSStringFromClass($0.classForCoder) == "MPVolumeSlider"}
+//                .first
+//        )  as! UISlider
+    }
+    
+    func sendAlarmNotification(triggerTimeInterval: Double) {
         let content = UNMutableNotificationContent()
         content.title = "Wakey"
         content.body = "☀️ Rise and shine. It's time to wake up :)"
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: triggerTimeInterval, repeats: false)
         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
 
         UNUserNotificationCenter.current().add(request)

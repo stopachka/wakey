@@ -7,7 +7,7 @@ func sendNotificationOnAppClose() -> Void {
     let content = UNMutableNotificationContent()
     content.title = "Wakey"
     content.body = "👋 Your Wakey alarm won't work if the app is closed. To re-enable, open Wakey and background it."
-    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+    let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2, repeats: false)
     let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
 
     UNUserNotificationCenter.current().add(request)
