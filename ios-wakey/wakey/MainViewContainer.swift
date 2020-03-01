@@ -86,46 +86,49 @@ let TRIGGER_SOUND_DELAY_SECS = 1.0
 let RENDER_VOLUME_PICKER_DELAY_SECS = 1.0
 
 /**
- This view, as soon as it is rendered, will force the volume to be a certain level
- 
- #As long as this view is rendered, the user's system volume bar will not work!
- 
- You must remove it after, but you have to give it at least 1 second to work
+ This view enables us to force set the vollume, we use this for when an alarm goes off
+ to ensure the alarm sound plays
  */
 struct ForceVolume: UIViewRepresentable {
-    var level : Float
-    var handleSetVolumeLevelComplete : () -> Void
+    var level : Float?
+    var handleComplete: () -> Void
     
     func makeUIView(context: Context) -> MPVolumeView {
-        let frame = CGRect(x: -120, y: -120, width: 120, height: 120)
-        let volumeView = MPVolumeView(frame: frame)
-        volumeView.sizeToFit()
-        volumeView.alpha = 0.000001
-    
+        let volumeView = MPVolumeView()
+        volumeView.showsVolumeSlider = false
         return volumeView
     }
 
     func updateUIView(_ view: MPVolumeView, context: Context) {
+        print("Rendered MPVolumeView")
+        guard let level = self.level else {
+            print("no level to update")
+            return
+        }
+        view.showsVolumeSlider = true
         Timer.scheduledTimer(withTimeInterval: RENDER_VOLUME_PICKER_DELAY_SECS, repeats: false, block: { _ in
-            self.setVolume(view: view, level: self.level)
-            self.handleSetVolumeLevelComplete()
+            self.setVolume(view: view, level: level)
+            view.showsVolumeSlider = false
+            self.handleComplete()
         })
     }
     
     func setVolume(view: MPVolumeView, level: Float) {
-        let volumeSlider = (
+        guard let volumeSlider = (
             view
                 .subviews
                 .filter { NSStringFromClass($0.classForCoder) == "MPVolumeSlider"}
                 .first
-            ) as! UISlider
-            
+            ) as? UISlider else {
+                print(view)
+                print("could not finid volume slider")
+            return
+        }
+        print("Setting volume to \(level)")
         volumeSlider.setValue(level, animated: false)
     }
     
 }
-
-
 
 //----
 // MainViewContainer
@@ -138,6 +141,7 @@ struct MainViewContainer : View {
     @State var allUsers : [User] = []
     @State var audioPlayer: AVAudioPlayer?
     @State var volumeLevelToForce: Float?
+    @State var alarmSoundFlag: Bool = false
     
     // TODO(stopachka)
     // Would be good to make sure that this only loads once
@@ -207,8 +211,10 @@ struct MainViewContainer : View {
             // TODO maybe move these into one function
             self.sendAlarmNotification(triggerTimeInterval: TRIGGER_ALARM_NOTIF_DELAY_SECS)
             self.volumeLevelToForce = 1.0 // set volume to max in advance of playing alarm sound
+            self.alarmSoundFlag = true
             Timer.scheduledTimer(withTimeInterval: TRIGGER_SOUND_DELAY_SECS, repeats: false, block: { _ in
                 self.playAlarmAudio()
+                self.alarmSoundFlag = false
             })
         })
     }
@@ -351,35 +357,31 @@ struct MainViewContainer : View {
     }
     
     var body: some View {
-        GeometryReader { proxy in
-            Group {
-                if self.volumeLevelToForce != nil {
-                    ForceVolume(
-                        level: self.volumeLevelToForce!,
-                        handleSetVolumeLevelComplete: { self.volumeLevelToForce = nil }
-                    )
-                }
-                MainView(
-                    isLoggingIn: self.isLoggingIn,
-                    authorizationStatus: self.authorizationStatus,
-                    loggedInUserUID: self.loggedInUserUID,
-                    allUsers: self.allUsers,
-                    error: self.error,
-                    handleError: { err in self.error = err },
-                    handleRequestNotificationAuth: self.handleRequestNotificationAuth,
-                    handleSignInWithFacebook: { self.handleSignInWithFacebook(accessToken: $0) },
-                    handleSignOut: self.handleSignOut,
-                    handleSaveAlarm: { self.handleSaveAlarm(alarm: $0) }
-                ).frame(width: proxy.size.width, height: proxy.size.height)
-            }
-        }
-            .onAppear(perform: connect)
-            .onReceive(
-                NotificationCenter.default.publisher(
-                    for: UIApplication.willEnterForegroundNotification
-                ),
-                perform: { _ in self.getAuthorizationStatus() }
+        Group {
+            ForceVolume(
+                level: self.volumeLevelToForce,
+                handleComplete: { self.volumeLevelToForce = nil }
+            ).frame(width: 0, height: 0)
+            MainView(
+                isLoggingIn: self.isLoggingIn,
+                authorizationStatus: self.authorizationStatus,
+                loggedInUserUID: self.loggedInUserUID,
+                allUsers: self.allUsers,
+                error: self.error,
+                handleError: { err in self.error = err },
+                handleRequestNotificationAuth: self.handleRequestNotificationAuth,
+                handleSignInWithFacebook: { self.handleSignInWithFacebook(accessToken: $0) },
+                handleSignOut: self.handleSignOut,
+                handleSaveAlarm: { self.handleSaveAlarm(alarm: $0) }
             )
+        }
+        .onAppear(perform: connect)
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: UIApplication.willEnterForegroundNotification
+            ),
+            perform: { _ in self.getAuthorizationStatus() }
+        )
     }
 }
 
