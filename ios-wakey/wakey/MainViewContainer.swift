@@ -474,7 +474,7 @@ struct MainViewContainer : View {
                 handleSaveAlarm: { self.handleSaveAlarm(alarm: $0) }
             )
         }
-        .onAppear(perform: connect)
+        .onAppear(perform: self.connect)
         .onReceive(
             NotificationCenter.default.publisher(
                 for: UIApplication.willEnterForegroundNotification

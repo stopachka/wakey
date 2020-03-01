@@ -5,6 +5,8 @@ import SwiftUI
 import FBSDKLoginKit
 import AVFoundation
 
+let ACTIVE_WAKEUP_CUTOFF_TIME_INTERVAL_SECONDS: Double = 30 * 60 // 30 minutes
+
 struct NotificationRequestAuthView : View {
     var handleRequestNotificationAuth: () -> Void
     var body : some View {
@@ -101,7 +103,7 @@ func isActiveWakeup(wakeup: Wakeup) -> Bool {
     }
     
     let secondsSinceAlarmDate = abs(Date().timeIntervalSince(wakeup.alarmDate))
-    if secondsSinceAlarmDate > (30 * 60) {
+    if secondsSinceAlarmDate > ACTIVE_WAKEUP_CUTOFF_TIME_INTERVAL_SECONDS {
         return false
     }
     
@@ -218,12 +220,14 @@ struct MainView : View {
         let lastWakeup = loggedInUser.wakeups.last
         if lastWakeup != nil && isActiveWakeup(wakeup: lastWakeup!) {
             return AnyView(
-                AckView(handleAck: { ack in
-                    var updatedWakeup = lastWakeup!
-                    updatedWakeup.ack = ack
-                    saveWakeup(loggedInUserUID: loggedInUserUID, wakeup: updatedWakeup)
-                })
-                    .padding()
+                AckView(
+                    handleAck: { ack in
+                        var updatedWakeup = lastWakeup!
+                        updatedWakeup.ack = ack
+                        saveWakeup(loggedInUserUID: loggedInUserUID, wakeup: updatedWakeup)
+                    }
+                )
+//                     .padding()
             )
         }
 
@@ -338,8 +342,6 @@ struct MainView_Previews: PreviewProvider {
                     handleSignOut: { },
                     handleSaveAlarm: { _ in }
                 ).previewDisplayName("Enable Notifications")
-            }
-            Group {
                 MainView(
                     isLoggingIn: false,
                     authorizationStatus: .denied,
@@ -351,6 +353,8 @@ struct MainView_Previews: PreviewProvider {
                     handleSignOut: { },
                     handleSaveAlarm: { _ in }
                 ).previewDisplayName("Denied Notifications")
+            }
+            Group {
                 MainView(
                     isLoggingIn: false,
                     authorizationStatus: .authorized,
@@ -407,7 +411,19 @@ struct MainView_Previews: PreviewProvider {
                     handleSignOut: { },
                     handleSaveAlarm: { _ in },
                     activeTab: .Friends
-                ).previewDisplayName("Ack View")
+                ).previewDisplayName("Ack View with active wakeup")
+                MainView(
+                    isLoggingIn: false,
+                    authorizationStatus: .authorized,
+                    loggedInUserUID: TestUtils.joe.uid,
+                    allUsers: [TestUtils.stopa, TestUtils.joeWithOutOfRangeWakeup],
+                    handleError: { _ in },
+                    handleRequestNotificationAuth: {},
+                    handleSignInWithFacebook: { _ in },
+                    handleSignOut: { },
+                    handleSaveAlarm: { _ in },
+                    activeTab: .Home
+                ).previewDisplayName("No Ack View with wakeup outside of ack range")
                 MainView(
                     isLoggingIn: false,
                     authorizationStatus: .authorized,

@@ -7,7 +7,6 @@ Wraps FB's FBLoginButton into a `UIViewRepresentable`.
 This lets us embed this into SwiftUI components
 Also handles the glue into Firebase
 */
-
 class FBLoginButtonCoordinator : NSObject, LoginButtonDelegate {
     var handleError : (String) -> Void
     var handleSignIn : (AccessToken) -> Void
