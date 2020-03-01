@@ -24,6 +24,7 @@
 		DC0372672409B5EE00C7AE25 /* tickle.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = DC0372662409B5EE00C7AE25 /* tickle.mp3 */; };
 		DC0372692409D21E00C7AE25 /* silent.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = DC0372682409D21D00C7AE25 /* silent.mp3 */; };
 		DC4436AF24099C3200E4867A /* LoginScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC4436AE24099C3200E4867A /* LoginScreenView.swift */; };
+		DC9C87B3240B44DB0015E893 /* AckView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC9C87B2240B44DB0015E893 /* AckView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,6 +49,7 @@
 		DC0372662409B5EE00C7AE25 /* tickle.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = tickle.mp3; sourceTree = "<group>"; };
 		DC0372682409D21D00C7AE25 /* silent.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = silent.mp3; sourceTree = "<group>"; };
 		DC4436AE24099C3200E4867A /* LoginScreenView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginScreenView.swift; sourceTree = "<group>"; };
+		DC9C87B2240B44DB0015E893 /* AckView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AckView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +96,7 @@
 		B20101C023C8428E0083B675 /* wakey */ = {
 			isa = PBXGroup;
 			children = (
+				DC9C87B2240B44DB0015E893 /* AckView.swift */,
 				DC0372682409D21D00C7AE25 /* silent.mp3 */,
 				DC0372662409B5EE00C7AE25 /* tickle.mp3 */,
 				B29EEA2A23C84E4A003247FD /* GoogleService-Info.plist */,
@@ -254,6 +257,7 @@
 				B205A0D523D77F2000F8E1AD /* MainView.swift in Sources */,
 				B205A0DD23D7B0C600F8E1AD /* FriendFeed.swift in Sources */,
 				B20101C223C8428E0083B675 /* AppDelegate.swift in Sources */,
+				DC9C87B3240B44DB0015E893 /* AckView.swift in Sources */,
 				B205A0DF23D7B5FD00F8E1AD /* TestUtils.swift in Sources */,
 				B205A0DB23D7AF4E00F8E1AD /* LoadableImage.swift in Sources */,
 				B20101C423C8428E0083B675 /* SceneDelegate.swift in Sources */,

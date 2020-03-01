@@ -95,6 +95,19 @@ func splitIntoLoggedInUserAndFriends(allUsers: [User], loggedInUserUID: String) 
     return (loggedInUser, friends)
 }
 
+func isActiveWakeup(wakeup: Wakeup) -> Bool {
+    if wakeup.ack != nil {
+        return false
+    }
+    
+    let secondsSinceAlarmDate = abs(Date().timeIntervalSince(wakeup.alarmDate))
+    if secondsSinceAlarmDate > (30 * 60) {
+        return false
+    }
+    
+    return true
+}
+
 enum WakeyTab {
     case Home
     case Friends
@@ -198,6 +211,22 @@ struct MainView : View {
                 ).padding()
             )
         }
+        
+        /**
+         Show screen to acknolwedge wake-up
+        */
+        let lastWakeup = loggedInUser.wakeups.last
+        if lastWakeup != nil && isActiveWakeup(wakeup: lastWakeup!) {
+            return AnyView(
+                AckView(handleAck: { ack in
+                    var updatedWakeup = lastWakeup!
+                    updatedWakeup.ack = ack
+                    saveWakeup(loggedInUserUID: loggedInUserUID, wakeup: updatedWakeup)
+                })
+                    .padding()
+            )
+        }
+
         /**
          Show the editing alarm view if that's the case
         */
@@ -262,120 +291,136 @@ struct MainView : View {
 struct MainView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            MainView(
-                isLoggingIn: true,
-                authorizationStatus: nil,
-                loggedInUserUID: nil,
-                allUsers: [],
-                error: nil,
-                handleError: { _ in },
-                handleRequestNotificationAuth: {},
-                handleSignInWithFacebook: { _ in },
-                handleSignOut: { },
-                handleSaveAlarm: { _ in }
-            ).previewDisplayName("Logging In")
-            MainView(
-                isLoggingIn: true,
-                authorizationStatus: nil,
-                loggedInUserUID: nil,
-                allUsers: [],
-                error: "This is an example error message",
-                handleError: { _ in },
-                handleRequestNotificationAuth: {},
-                handleSignInWithFacebook: { _ in },
-                handleSignOut: { },
-                handleSaveAlarm: { _ in }
-            ).previewDisplayName("Error")
-            MainView(
-                isLoggingIn: false,
-                authorizationStatus: nil,
-                loggedInUserUID: nil,
-                allUsers: [],
-                handleError: { _ in },
-                handleRequestNotificationAuth: {},
-                handleSignInWithFacebook: { _ in },
-                handleSignOut: { },
-                handleSaveAlarm: { _ in }
-            ).previewDisplayName("Sign In")
-            MainView(
-                isLoggingIn: false,
-                authorizationStatus: .notDetermined,
-                loggedInUserUID: TestUtils.joe.uid,
-                allUsers: [],
-                handleError: { _ in },
-                handleRequestNotificationAuth: {},
-                handleSignInWithFacebook: { _ in },
-                handleSignOut: { },
-                handleSaveAlarm: { _ in }
-            ).previewDisplayName("Enable Notifications")
-            MainView(
-                isLoggingIn: false,
-                authorizationStatus: .denied,
-                loggedInUserUID: TestUtils.joe.uid,
-                allUsers: [],
-                handleError: { _ in },
-                handleRequestNotificationAuth: {},
-                handleSignInWithFacebook: { _ in },
-                handleSignOut: { },
-                handleSaveAlarm: { _ in }
-            ).previewDisplayName("Denied Notifications")
-            MainView(
-                isLoggingIn: false,
-                authorizationStatus: .authorized,
-                loggedInUserUID: TestUtils.joe.uid,
-                allUsers: [],
-                handleError: { _ in },
-                handleRequestNotificationAuth: {},
-                handleSignInWithFacebook: { _ in },
-                handleSignOut: { },
-                handleSaveAlarm: { _ in }
-            ).previewDisplayName("Loading allUsers")
-            MainView(
-                isLoggingIn: false,
-                authorizationStatus: .authorized,
-                loggedInUserUID: TestUtils.joe.uid,
-                allUsers: [TestUtils.stopa, TestUtils.joe],
-                handleError: { _ in },
-                handleRequestNotificationAuth: {},
-                handleSignInWithFacebook: { _ in },
-                handleSignOut: { },
-                handleSaveAlarm: { _ in }
-            ).previewDisplayName("No Alarm Set")
-            MainView(
-                isLoggingIn: false,
-                authorizationStatus: .authorized,
-                loggedInUserUID: TestUtils.joe.uid,
-                allUsers: [TestUtils.stopa, TestUtils.joeWith8AMAlarm],
-                handleError: { _ in },
-                handleRequestNotificationAuth: {},
-                handleSignInWithFacebook: { _ in },
-                handleSignOut: { },
-                handleSaveAlarm: { _ in }
-            ).previewDisplayName("With Alarm")
-            MainView(
-                isLoggingIn: false,
-                authorizationStatus: .authorized,
-                loggedInUserUID: TestUtils.joe.uid,
-                allUsers: [TestUtils.stopa, TestUtils.joeWith8AMAlarm],
-                handleError: { _ in },
-                handleRequestNotificationAuth: {},
-                handleSignInWithFacebook: { _ in },
-                handleSignOut: { },
-                handleSaveAlarm: { _ in },
-                isEditingAlarm: true
-            ).previewDisplayName("Editing Alarm")
-            MainView(
-                isLoggingIn: false,
-                authorizationStatus: .authorized,
-                loggedInUserUID: TestUtils.joe.uid,
-                allUsers: [TestUtils.stopa, TestUtils.joeWith8AMAlarm],
-                handleError: { _ in },
-                handleRequestNotificationAuth: {},
-                handleSignInWithFacebook: { _ in },
-                handleSignOut: { },
-                handleSaveAlarm: { _ in },
-                activeTab: .Friends
-            ).previewDisplayName("Friends Feed")
+            Group {
+                MainView(
+                    isLoggingIn: true,
+                    authorizationStatus: nil,
+                    loggedInUserUID: nil,
+                    allUsers: [],
+                    error: nil,
+                    handleError: { _ in },
+                    handleRequestNotificationAuth: {},
+                    handleSignInWithFacebook: { _ in },
+                    handleSignOut: { },
+                    handleSaveAlarm: { _ in }
+                ).previewDisplayName("Logging In")
+                MainView(
+                    isLoggingIn: true,
+                    authorizationStatus: nil,
+                    loggedInUserUID: nil,
+                    allUsers: [],
+                    error: "This is an example error message",
+                    handleError: { _ in },
+                    handleRequestNotificationAuth: {},
+                    handleSignInWithFacebook: { _ in },
+                    handleSignOut: { },
+                    handleSaveAlarm: { _ in }
+                ).previewDisplayName("Error")
+                MainView(
+                    isLoggingIn: false,
+                    authorizationStatus: nil,
+                    loggedInUserUID: nil,
+                    allUsers: [],
+                    handleError: { _ in },
+                    handleRequestNotificationAuth: {},
+                    handleSignInWithFacebook: { _ in },
+                    handleSignOut: { },
+                    handleSaveAlarm: { _ in }
+                ).previewDisplayName("Sign In")
+                MainView(
+                    isLoggingIn: false,
+                    authorizationStatus: .notDetermined,
+                    loggedInUserUID: TestUtils.joe.uid,
+                    allUsers: [],
+                    handleError: { _ in },
+                    handleRequestNotificationAuth: {},
+                    handleSignInWithFacebook: { _ in },
+                    handleSignOut: { },
+                    handleSaveAlarm: { _ in }
+                ).previewDisplayName("Enable Notifications")
+            }
+            Group {
+                MainView(
+                    isLoggingIn: false,
+                    authorizationStatus: .denied,
+                    loggedInUserUID: TestUtils.joe.uid,
+                    allUsers: [],
+                    handleError: { _ in },
+                    handleRequestNotificationAuth: {},
+                    handleSignInWithFacebook: { _ in },
+                    handleSignOut: { },
+                    handleSaveAlarm: { _ in }
+                ).previewDisplayName("Denied Notifications")
+                MainView(
+                    isLoggingIn: false,
+                    authorizationStatus: .authorized,
+                    loggedInUserUID: TestUtils.joe.uid,
+                    allUsers: [],
+                    handleError: { _ in },
+                    handleRequestNotificationAuth: {},
+                    handleSignInWithFacebook: { _ in },
+                    handleSignOut: { },
+                    handleSaveAlarm: { _ in }
+                ).previewDisplayName("Loading allUsers")
+                MainView(
+                    isLoggingIn: false,
+                    authorizationStatus: .authorized,
+                    loggedInUserUID: TestUtils.joe.uid,
+                    allUsers: [TestUtils.stopa, TestUtils.joe],
+                    handleError: { _ in },
+                    handleRequestNotificationAuth: {},
+                    handleSignInWithFacebook: { _ in },
+                    handleSignOut: { },
+                    handleSaveAlarm: { _ in }
+                ).previewDisplayName("No Alarm Set")
+                MainView(
+                    isLoggingIn: false,
+                    authorizationStatus: .authorized,
+                    loggedInUserUID: TestUtils.joe.uid,
+                    allUsers: [TestUtils.stopa, TestUtils.joeWith8AMAlarm],
+                    handleError: { _ in },
+                    handleRequestNotificationAuth: {},
+                    handleSignInWithFacebook: { _ in },
+                    handleSignOut: { },
+                    handleSaveAlarm: { _ in }
+                ).previewDisplayName("With Alarm")
+                MainView(
+                    isLoggingIn: false,
+                    authorizationStatus: .authorized,
+                    loggedInUserUID: TestUtils.joe.uid,
+                    allUsers: [TestUtils.stopa, TestUtils.joeWith8AMAlarm],
+                    handleError: { _ in },
+                    handleRequestNotificationAuth: {},
+                    handleSignInWithFacebook: { _ in },
+                    handleSignOut: { },
+                    handleSaveAlarm: { _ in },
+                    isEditingAlarm: true
+                ).previewDisplayName("Editing Alarm")
+                MainView(
+                    isLoggingIn: false,
+                    authorizationStatus: .authorized,
+                    loggedInUserUID: TestUtils.joe.uid,
+                    allUsers: [TestUtils.stopa, TestUtils.joeWithActiveWakeup],
+                    handleError: { _ in },
+                    handleRequestNotificationAuth: {},
+                    handleSignInWithFacebook: { _ in },
+                    handleSignOut: { },
+                    handleSaveAlarm: { _ in },
+                    activeTab: .Friends
+                ).previewDisplayName("Ack View")
+                MainView(
+                    isLoggingIn: false,
+                    authorizationStatus: .authorized,
+                    loggedInUserUID: TestUtils.joe.uid,
+                    allUsers: [TestUtils.stopa, TestUtils.joeWith8AMAlarm],
+                    handleError: { _ in },
+                    handleRequestNotificationAuth: {},
+                    handleSignInWithFacebook: { _ in },
+                    handleSignOut: { },
+                    handleSaveAlarm: { _ in },
+                    activeTab: .Friends
+                ).previewDisplayName("Friends Feed")
+            }
         }
     }
 }

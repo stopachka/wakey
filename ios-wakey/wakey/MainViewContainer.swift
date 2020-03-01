@@ -8,6 +8,15 @@ import MediaPlayer
 // Data
 
 
+struct WakeupAck {
+    var date: Date
+}
+
+struct Wakeup {
+    var alarmDate: Date
+    var ack: WakeupAck?
+}
+
 struct WakeyAlarm {
     var hour: Int
     var minute: Int
@@ -20,6 +29,7 @@ struct User {
     var photoURL: URL?
     var displayName: String?
     var alarm: WakeyAlarm?
+    var wakeups: [Wakeup]
 }
 
 //----
@@ -36,22 +46,55 @@ func coerceToWakeyAlarm(input : Any? ) -> WakeyAlarm? {
     )
 }
 
-func coerceToURL(input : Any?) -> URL? {
+func coerceToURL(input: Any?) -> URL? {
     guard let str = input as? String else {
         return nil
     }
     return URL(string: str)
 }
 
+func parseDate(isoString: String) -> Date {
+    let dateFormatter = ISO8601DateFormatter()
+    let date = dateFormatter.date(from: isoString)
+    return date!
+}
+
+func formatDate(date: Date) -> String {
+    let dateFormatter = ISO8601DateFormatter()
+    return dateFormatter.string(from: date)
+}
+
+func coerceAck(input: Any?) -> WakeupAck? {
+    guard let ackMap = input as? [String: Any] else {
+        return nil
+    }
+    return WakeupAck(
+        date: parseDate(isoString: ackMap["date"] as! String)
+    )
+}
+
 // TODO(stopachka)
 // What if this throws?
 // How will we parse more complicated structures?
-func documentToUser(document : DocumentSnapshot) -> User {
+
+func documentToWakeup(document : DocumentSnapshot) -> (String, Wakeup) {
+    let date = parseDate(isoString: document["alarmDate"] as! String)
+    return (
+        document["userUID"] as! String,
+        Wakeup(
+            alarmDate: date,
+            ack: coerceAck(input: document["ack"])
+        )
+    )
+}
+
+func documentToUserWithoutWakeups(document : DocumentSnapshot) -> User {
     return User(
         uid: document["uid"] as! String,
         photoURL: coerceToURL(input: document["photoURL"]),
         displayName: document["displayName"] as? String,
-        alarm: coerceToWakeyAlarm(input: document["alarm"])
+        alarm: coerceToWakeyAlarm(input: document["alarm"]),
+        wakeups: []
     )
 }
 
@@ -77,6 +120,30 @@ func saveAlarm(loggedInUserUID: String, alarm: WakeyAlarm) {
         ]
     ], merge: true)
     print("Saved \(loggedInUserUID)'s alarm to db")
+}
+
+/**
+    TODO: research into how subcollections work
+    Right now we treat wakeups as a different
+ */
+func saveWakeup(loggedInUserUID: String, wakeup: Wakeup) {
+    let formattedAlarmDate = formatDate(date: wakeup.alarmDate)
+    let db = Firestore.firestore()
+    let ack = wakeup.ack
+    let doc = db
+        .collection("wakeups")
+        .document("\(loggedInUserUID)-\(formattedAlarmDate)")
+    doc.setData([
+        "userUID": loggedInUserUID,
+        "alarmDate": formattedAlarmDate,
+    ], merge: true)
+    if let ack = ack {
+        doc.setData(
+            ["ack": ["date": formatDate(date: ack.date)]],
+            merge: true
+        )
+    }
+    print("Saved \(loggedInUserUID)'s wakeup to db")
 }
 
 /**
@@ -127,9 +194,8 @@ struct ForceVolume: UIViewRepresentable {
         print("Setting volume to \(level)")
         volumeSlider.setValue(level, animated: false)
     }
-    
 }
-
+                
 //----
 // MainViewContainer
 
@@ -138,7 +204,8 @@ struct MainViewContainer : View {
     @State var authorizationStatus : UNAuthorizationStatus?
     @State var error : String?
     @State var loggedInUserUID : String?
-    @State var allUsers : [User] = []
+    @State var userUIDToWakeups : [String : [Wakeup]] = [String : [Wakeup]]()
+    @State var usersWithoutWakeups : [User] = []
     @State var audioPlayer: AVAudioPlayer?
     @State var volumeLevelToForce: Float?
     @State var alarmSoundFlag: Bool = false
@@ -167,6 +234,23 @@ struct MainViewContainer : View {
          Connect into Firebase's "userInfo" state
          This is where we get all user data
          */
+        Firestore.firestore().collectionGroup("wakeups")
+            .addSnapshotListener { collectionSnapshot, error in
+                guard let collection = collectionSnapshot else {
+                    self.error = "Uh oh, we weren't able to find your friends."
+                    print("Error fetching collection: \(error!)")
+                    return
+                }
+                var res = [String : [Wakeup]]()
+                for tup in collection.documents.map(documentToWakeup) {
+                    let (userUID, wakeup) = tup
+                    var wakeups = res[userUID] ?? [Wakeup]()
+                    wakeups.append(wakeup)
+                    res[userUID] = wakeups
+                }
+                self.userUIDToWakeups = res
+        }
+        
         Firestore.firestore().collection("userInfos")
             .addSnapshotListener { collectionSnapshot, error in
                 guard let collection = collectionSnapshot else {
@@ -174,8 +258,7 @@ struct MainViewContainer : View {
                     print("Error fetching collection: \(error!)")
                     return
                 }
-                let users = collection.documents.map(documentToUser)
-                self.allUsers = users
+                self.usersWithoutWakeups = collection.documents.map(documentToUserWithoutWakeups)
         }
         
         getAuthorizationStatus()
@@ -216,7 +299,21 @@ struct MainViewContainer : View {
                 self.playAlarmAudio()
                 self.alarmSoundFlag = false
             })
+            // TODO: Maybe we can move all the logic that requires aa loggedInUser
+            // Into one view, below "MainView"
+            saveWakeup(
+                loggedInUserUID: self.loggedInUserUID!,
+                wakeup: Wakeup(alarmDate: wakeupDate, ack: nil)
+            )
         })
+    }
+    
+    func allUsers() -> [User] {
+        return usersWithoutWakeups.map { (user: User) -> User in
+            var newUser = user
+            newUser.wakeups = self.userUIDToWakeups[user.uid] ?? []
+            return newUser
+        }
     }
     
     func getAuthorizationStatus() {
@@ -237,8 +334,10 @@ struct MainViewContainer : View {
         guard let loggedInUserUID = loggedInUserUID else {
             return nil
         }
-        
-        let (user, _) = splitIntoLoggedInUserAndFriends(allUsers: self.allUsers, loggedInUserUID: loggedInUserUID)
+        let (user, _) = splitIntoLoggedInUserAndFriends(
+            allUsers: self.allUsers(),
+            loggedInUserUID: loggedInUserUID
+        )
         return user
     }
     
@@ -366,7 +465,7 @@ struct MainViewContainer : View {
                 isLoggingIn: self.isLoggingIn,
                 authorizationStatus: self.authorizationStatus,
                 loggedInUserUID: self.loggedInUserUID,
-                allUsers: self.allUsers,
+                allUsers: self.allUsers(),
                 error: self.error,
                 handleError: { err in self.error = err },
                 handleRequestNotificationAuth: self.handleRequestNotificationAuth,
