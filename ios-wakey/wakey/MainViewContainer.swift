@@ -456,7 +456,7 @@ struct MainViewContainer : View {
     }
     
     var body: some View {
-        Group {
+        ZStack {
             ForceVolume(
                 level: self.volumeLevelToForce,
                 handleComplete: { self.volumeLevelToForce = nil }

@@ -227,7 +227,6 @@ struct MainView : View {
                         saveWakeup(loggedInUserUID: loggedInUserUID, wakeup: updatedWakeup)
                     }
                 )
-//                     .padding()
             )
         }
 

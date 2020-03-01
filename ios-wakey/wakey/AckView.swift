@@ -52,62 +52,45 @@ struct CaptureImageView: UIViewControllerRepresentable {
     }
 }
 
-func getFullScreenWidth(geo: GeometryProxy) -> CGFloat {
-    let rec = geo.frame(in: .global)
-    return rec.width + geo.safeAreaInsets.trailing + geo.safeAreaInsets.leading
-}
-
-func getFullScreenHeight(geo: GeometryProxy) -> CGFloat {
-    let rec = geo.frame(in: .global)
-    return rec.height + geo.safeAreaInsets.top + geo.safeAreaInsets.bottom
-}
-
 struct AckView: View {
     var handleAck: (WakeupAck) -> Void
     @State var showCaptureImageView: Bool = false
     @State var image: Image?
     
-    var x : some View {
-        VStack {
-            Spacer()
-            Text("🎈 Wake up! 🎈")
-                .font(.largeTitle)
-                .padding(.bottom)
-            Text("Click 👇 this button to realllly prove you're awake")
-                .padding(.bottom)
-                .multilineTextAlignment(.center)
-            Button(action: { self.showCaptureImageView.toggle()}) {
-                Text("Take photo")
-                    .font(.headline)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .padding()
-            }
-            Button(action: { self.handleAck(WakeupAck(date: Date()))}) {
-                Text("I'm up")
-                    .font(.headline)
-                    .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .padding()
-            }
-            Spacer()
-        }.padding()
-    }
-    
     var body : some View {
-        VStack {
-            GeometryReader { geo in
-                if (self.showCaptureImageView) {
-                    CaptureImageView(isShown: self.$showCaptureImageView, image: self.$image)
-                        .frame(width: getFullScreenWidth(geo: geo), height: getFullScreenHeight(geo: geo))
-                } else {
-                    self.x
-                }
+        Group {
+            if (self.showCaptureImageView) {
+                CaptureImageView(isShown: self.$showCaptureImageView, image: self.$image)
+                    .edgesIgnoringSafeArea(.all)
+            } else {
+                VStack {
+                    Spacer()
+                    Text("🎈 Wake up! 🎈")
+                        .font(.largeTitle)
+                        .padding(.bottom)
+                    Text("Click 👇 this button to realllly prove you're awake")
+                        .padding(.bottom)
+                        .multilineTextAlignment(.center)
+                    Button(action: { self.showCaptureImageView.toggle()}) {
+                        Text("Take photo")
+                            .font(.headline)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .padding()
+                    }
+                    Button(action: { self.handleAck(WakeupAck(date: Date()))}) {
+                        Text("I'm up")
+                            .font(.headline)
+                            .padding()
+                            .background(Color.blue)
+                            .foregroundColor(.white)
+                            .padding()
+                    }
+                    Spacer()
+                }.padding()
             }
         }
-        .edgesIgnoringSafeArea(.all)
     }
 }
 
