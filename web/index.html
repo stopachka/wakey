@@ -26,7 +26,24 @@
     .root-title { 
       font-size: 3em;
       font-weight: 500;
-      margin-bottom: 0.5em;
+      margin-bottom: 0;
+    }
+    .root-desc {
+      margin-top: 0.5em;
+      font-weight: normal;
+    }
+    .action-button {
+      display: inline-block;
+      background: blue;
+      color: white;
+      padding: 1em;
+      margin: 1em;
+      font-size: 1.1em;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .action-button:hover, .action-button:focus {
+      background: darkblue;
     }
   </style>
 </head>
@@ -34,8 +51,11 @@
   <div class="root">
     <h1 class="root-title">☀️ Wakey</h1>
     <h2 class="root-desc">The world's best social alarm clock</h2>
-    <a class="action-button" href="#">
-      Try it out with TestFlight
+    <a 
+      class="action-button" 
+      href="#"
+      target="_blank">
+        Try it out with TestFlight
     </a>
   </div>
 </body>
