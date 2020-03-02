@@ -8,8 +8,8 @@
 	<array>
 		<string>audio</string>
 	</array>
-	<key>UIApplicationExitsOnSuspend</key>
-	<false/>
+	<key>LSApplicationCategoryType</key>
+	<string></string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
