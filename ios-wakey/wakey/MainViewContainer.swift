@@ -195,7 +195,17 @@ struct ForceVolume: UIViewRepresentable {
         volumeSlider.setValue(level, animated: false)
     }
 }
-                
+           
+enum WakeyAudioPlayerType {
+    case Silent
+    case Alarm
+}
+
+struct WakeyAudioPlayer {
+    var audioPlayer: AVAudioPlayer
+    var type: WakeyAudioPlayerType
+}
+
 //----
 // MainViewContainer
 
@@ -206,9 +216,10 @@ struct MainViewContainer : View {
     @State var loggedInUserUID : String?
     @State var userUIDToWakeups : [String : [Wakeup]] = [String : [Wakeup]]()
     @State var usersWithoutWakeups : [User] = []
-    @State var audioPlayer: AVAudioPlayer?
+    @State var audioPlayer: WakeyAudioPlayer?
     @State var volumeLevelToForce: Float?
     @State var alarmSoundFlag: Bool = false
+    
     
     // TODO(stopachka)
     // Would be good to make sure that this only loads once
@@ -298,13 +309,13 @@ struct MainViewContainer : View {
             Timer.scheduledTimer(withTimeInterval: TRIGGER_SOUND_DELAY_SECS, repeats: false, block: { _ in
                 self.playAlarmAudio()
                 self.alarmSoundFlag = false
+                // TODO: Maybe we can move all the logic that requires aa loggedInUser
+                // Into one view, below "MainView"
+                saveWakeup(
+                    loggedInUserUID: self.loggedInUserUID!,
+                    wakeup: Wakeup(alarmDate: wakeupDate, ack: nil)
+                )
             })
-            // TODO: Maybe we can move all the logic that requires aa loggedInUser
-            // Into one view, below "MainView"
-            saveWakeup(
-                loggedInUserUID: self.loggedInUserUID!,
-                wakeup: Wakeup(alarmDate: wakeupDate, ack: nil)
-            )
         })
     }
     
@@ -380,12 +391,12 @@ struct MainViewContainer : View {
     
     func playSilentAudio() {
         let path = Bundle.main.path(forResource: "silent", ofType: "mp3")!
-        playPath(path: path)
+        playPath(path: path, type: .Silent)
     }
     
     func playAlarmAudio() {
         let path = Bundle.main.path(forResource: "tickle", ofType: "mp3")!
-        playPath(path: path)
+        playPath(path: path, type: .Alarm)
     }
     
     func sendAlarmNotification(triggerTimeInterval: Double) {
@@ -398,9 +409,9 @@ struct MainViewContainer : View {
         UNUserNotificationCenter.current().add(request)
     }
     
-    func playPath(path: String) {
+    func playPath(path: String, type: WakeyAudioPlayerType) {
         if let oldAudioPlayer = self.audioPlayer {
-            oldAudioPlayer.stop()
+            oldAudioPlayer.audioPlayer.stop()
         }
 
         let url = URL(fileURLWithPath: path)
@@ -410,7 +421,7 @@ struct MainViewContainer : View {
             newAudioPlayer.prepareToPlay()
             newAudioPlayer.numberOfLoops = -1
             newAudioPlayer.play()
-            self.audioPlayer = newAudioPlayer
+            self.audioPlayer = WakeyAudioPlayer(audioPlayer: newAudioPlayer, type: type)
         } catch let error as NSError {
             // File could not load
             self.error = "Uh-oh. Could not play sounds"
@@ -466,12 +477,14 @@ struct MainViewContainer : View {
                 authorizationStatus: self.authorizationStatus,
                 loggedInUserUID: self.loggedInUserUID,
                 allUsers: self.allUsers(),
+                activeAudioPlayerType: self.audioPlayer?.type,
                 error: self.error,
                 handleError: { err in self.error = err },
                 handleRequestNotificationAuth: self.handleRequestNotificationAuth,
                 handleSignInWithFacebook: { self.handleSignInWithFacebook(accessToken: $0) },
                 handleSignOut: self.handleSignOut,
-                handleSaveAlarm: { self.handleSaveAlarm(alarm: $0) }
+                handleSaveAlarm: { self.handleSaveAlarm(alarm: $0) },
+                handleSilence: self.playSilentAudio
             )
         }
         .onAppear(perform: self.connect)

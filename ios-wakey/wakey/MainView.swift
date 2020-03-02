@@ -122,12 +122,14 @@ struct MainView : View {
     var authorizationStatus: UNAuthorizationStatus?
     var loggedInUserUID: String?
     var allUsers: [User]
+    var activeAudioPlayerType: WakeyAudioPlayerType?
     var error : String?
     var handleError : (String) -> Void
     var handleRequestNotificationAuth : () -> Void
     var handleSignInWithFacebook : (AccessToken) -> Void
     var handleSignOut : () -> Void
     var handleSaveAlarm : (WakeyAlarm) -> Void
+    var handleSilence: () -> Void
     
     @State var isEditingAlarm : Bool = false
     @State var activeTab : WakeyTab = .Home
@@ -218,14 +220,16 @@ struct MainView : View {
          Show screen to acknolwedge wake-up
         */
         let lastWakeup = loggedInUser.wakeups.last
-        if lastWakeup != nil && isActiveWakeup(wakeup: lastWakeup!) {
+        if (lastWakeup != nil && isActiveWakeup(wakeup: lastWakeup!)) || self.activeAudioPlayerType == .Alarm {
             return AnyView(
                 AckView(
                     handleAck: { ack in
                         var updatedWakeup = lastWakeup!
                         updatedWakeup.ack = ack
                         saveWakeup(loggedInUserUID: loggedInUserUID, wakeup: updatedWakeup)
-                    }
+                    },
+                    handleSilence: { self.handleSilence() },
+                    activeAudioPlayerType: self.activeAudioPlayerType
                 )
             )
         }
@@ -305,7 +309,8 @@ struct MainView_Previews: PreviewProvider {
                     handleRequestNotificationAuth: {},
                     handleSignInWithFacebook: { _ in },
                     handleSignOut: { },
-                    handleSaveAlarm: { _ in }
+                    handleSaveAlarm: { _ in },
+                    handleSilence: { }
                 ).previewDisplayName("Logging In")
                 MainView(
                     isLoggingIn: true,
@@ -317,7 +322,8 @@ struct MainView_Previews: PreviewProvider {
                     handleRequestNotificationAuth: {},
                     handleSignInWithFacebook: { _ in },
                     handleSignOut: { },
-                    handleSaveAlarm: { _ in }
+                    handleSaveAlarm: { _ in },
+                    handleSilence: { }
                 ).previewDisplayName("Error")
                 MainView(
                     isLoggingIn: false,
@@ -328,7 +334,8 @@ struct MainView_Previews: PreviewProvider {
                     handleRequestNotificationAuth: {},
                     handleSignInWithFacebook: { _ in },
                     handleSignOut: { },
-                    handleSaveAlarm: { _ in }
+                    handleSaveAlarm: { _ in },
+                    handleSilence: { }
                 ).previewDisplayName("Sign In")
                 MainView(
                     isLoggingIn: false,
@@ -339,7 +346,8 @@ struct MainView_Previews: PreviewProvider {
                     handleRequestNotificationAuth: {},
                     handleSignInWithFacebook: { _ in },
                     handleSignOut: { },
-                    handleSaveAlarm: { _ in }
+                    handleSaveAlarm: { _ in },
+                    handleSilence: { }
                 ).previewDisplayName("Enable Notifications")
                 MainView(
                     isLoggingIn: false,
@@ -350,7 +358,8 @@ struct MainView_Previews: PreviewProvider {
                     handleRequestNotificationAuth: {},
                     handleSignInWithFacebook: { _ in },
                     handleSignOut: { },
-                    handleSaveAlarm: { _ in }
+                    handleSaveAlarm: { _ in },
+                    handleSilence: { }
                 ).previewDisplayName("Denied Notifications")
             }
             Group {
@@ -363,7 +372,8 @@ struct MainView_Previews: PreviewProvider {
                     handleRequestNotificationAuth: {},
                     handleSignInWithFacebook: { _ in },
                     handleSignOut: { },
-                    handleSaveAlarm: { _ in }
+                    handleSaveAlarm: { _ in },
+                    handleSilence: { }
                 ).previewDisplayName("Loading allUsers")
                 MainView(
                     isLoggingIn: false,
@@ -374,7 +384,8 @@ struct MainView_Previews: PreviewProvider {
                     handleRequestNotificationAuth: {},
                     handleSignInWithFacebook: { _ in },
                     handleSignOut: { },
-                    handleSaveAlarm: { _ in }
+                    handleSaveAlarm: { _ in },
+                    handleSilence: { }
                 ).previewDisplayName("No Alarm Set")
                 MainView(
                     isLoggingIn: false,
@@ -385,7 +396,8 @@ struct MainView_Previews: PreviewProvider {
                     handleRequestNotificationAuth: {},
                     handleSignInWithFacebook: { _ in },
                     handleSignOut: { },
-                    handleSaveAlarm: { _ in }
+                    handleSaveAlarm: { _ in },
+                    handleSilence: { }
                 ).previewDisplayName("With Alarm")
                 MainView(
                     isLoggingIn: false,
@@ -397,6 +409,7 @@ struct MainView_Previews: PreviewProvider {
                     handleSignInWithFacebook: { _ in },
                     handleSignOut: { },
                     handleSaveAlarm: { _ in },
+                    handleSilence: { },
                     isEditingAlarm: true
                 ).previewDisplayName("Editing Alarm")
                 MainView(
@@ -409,6 +422,7 @@ struct MainView_Previews: PreviewProvider {
                     handleSignInWithFacebook: { _ in },
                     handleSignOut: { },
                     handleSaveAlarm: { _ in },
+                    handleSilence: { },
                     activeTab: .Friends
                 ).previewDisplayName("Ack View with active wakeup")
                 MainView(
@@ -421,8 +435,23 @@ struct MainView_Previews: PreviewProvider {
                     handleSignInWithFacebook: { _ in },
                     handleSignOut: { },
                     handleSaveAlarm: { _ in },
+                    handleSilence: { },
                     activeTab: .Home
                 ).previewDisplayName("No Ack View with wakeup outside of ack range")
+                MainView(
+                    isLoggingIn: false,
+                    authorizationStatus: .authorized,
+                    loggedInUserUID: TestUtils.joe.uid,
+                    allUsers: [TestUtils.stopa, TestUtils.joeWithOutOfRangeWakeup],
+                    activeAudioPlayerType: .Alarm,
+                    handleError: { _ in },
+                    handleRequestNotificationAuth: {},
+                    handleSignInWithFacebook: { _ in },
+                    handleSignOut: { },
+                    handleSaveAlarm: { _ in },
+                    handleSilence: { },
+                    activeTab: .Home
+                ).previewDisplayName("View with wakeup outside of ack range but has alarm audio type")
                 MainView(
                     isLoggingIn: false,
                     authorizationStatus: .authorized,
@@ -433,6 +462,7 @@ struct MainView_Previews: PreviewProvider {
                     handleSignInWithFacebook: { _ in },
                     handleSignOut: { },
                     handleSaveAlarm: { _ in },
+                    handleSilence: { },
                     activeTab: .Friends
                 ).previewDisplayName("Friends Feed")
             }
