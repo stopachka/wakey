@@ -229,7 +229,8 @@ struct MainView : View {
                         saveWakeup(loggedInUserUID: loggedInUserUID, wakeup: updatedWakeup)
                     },
                     handleSilence: { self.handleSilence() },
-                    activeAudioPlayerType: self.activeAudioPlayerType
+                    activeAudioPlayerType: self.activeAudioPlayerType,
+                    loggedInUserUID: loggedInUserUID
                 )
             )
         }
@@ -261,7 +262,8 @@ struct MainView : View {
                     wakeyAlarm: alarm,
                     handleEdit: {
                         self.isEditingAlarm = true
-                    }
+                    },
+                    lastWakeup: lastWakeup
                 ).tabItem {
                     VStack {
                         if activeTab == .Home {

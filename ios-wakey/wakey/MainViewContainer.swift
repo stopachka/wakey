@@ -10,6 +10,7 @@ import MediaPlayer
 
 struct WakeupAck {
     var date: Date
+    var photoUrl: String?
 }
 
 struct Wakeup {
@@ -139,7 +140,7 @@ func saveWakeup(loggedInUserUID: String, wakeup: Wakeup) {
     ], merge: true)
     if let ack = ack {
         doc.setData(
-            ["ack": ["date": formatDate(date: ack.date)]],
+            ["ack": ["date": formatDate(date: ack.date), "photoUrl": ack.photoUrl]],
             merge: true
         )
     }

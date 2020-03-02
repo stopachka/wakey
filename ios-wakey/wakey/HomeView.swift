@@ -54,6 +54,8 @@ func wakeyAlarmToNextDate(wakeyAlarm: WakeyAlarm, baseDate: Date? = nil) -> Date
 struct HomeView : View {
     var wakeyAlarm : WakeyAlarm
     var handleEdit : () -> Void
+    var lastWakeup: Wakeup?
+    
     var body : some View {
         let date = wakeyAlarmToNextDate(wakeyAlarm: wakeyAlarm)
         let formatter = DateFormatter()
@@ -75,6 +77,11 @@ struct HomeView : View {
                 Text("You're alarm is set. Here's to a great day")
                     .font(.headline)
                     .padding(.bottom)
+                // (TODO) Put this in for now to verify ack after uploading photo worked
+                // but will want to make this more pretty
+                if lastWakeup?.ack != nil {
+                    Text("You last woke up at \((lastWakeup!.ack?.date.description)!)")
+                }
                 Spacer()
             }
         )
